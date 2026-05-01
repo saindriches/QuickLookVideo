@@ -2023,7 +2023,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "텍스트 편집기 도움말"
+            "value" : "QuickLook Video 도움말"
           }
         },
         "nb-NO" : {
@@ -2817,7 +2817,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "텍스트 편집기 가리기"
+            "value" : "QuickLook Video 가리기"
           }
         },
         "nb-NO" : {
