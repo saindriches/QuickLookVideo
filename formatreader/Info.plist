@@ -58,6 +58,7 @@
 			<string>f4v</string>
 			<string>ogm</string>
 			<string>ogv</string>
+			<string>ivf</string>
 		</array>
 		<key>MTUTTypeArray</key>
 		<array>
@@ -66,12 +67,12 @@
 
 			<string>org.matroska.mkv</string>
 			<string>com.firecore.fileformat.mkv</string>
-                        <string>io.iina.mkv</string>
+			<string>io.iina.mkv</string>
 
 			<string>org.webmproject.webm</string>
 			<string>com.firecore.fileformat.webm</string>
 			<string>io.iina.webm</string>
-                        <string>io.mpv.webm</string>
+			<string>io.mpv.webm</string>
 			<string>org.videolan.webm</string>
 
 			<string>public.avi</string>
@@ -107,7 +108,7 @@
 			<string>com.real.realaudio</string>
 
 			<string>com.real.realmedia</string>
-                        <string>io.iina.realmedia</string>
+			<string>io.iina.realmedia</string>
 
 			<string>public.flc-animation</string>
 
@@ -116,10 +117,12 @@
 			<string>io.iina.flash</string>
 
 			<string>org.xiph.ogv</string>
-                        <string>com.firecore.fileformat.ogm</string>
+			<string>com.firecore.fileformat.ogm</string>
 			<string>com.firecore.fileformat.ogv</string>
 			<string>org.xiph.ogg-video</string>
 			<string>io.iina.ogg-video</string>
+
+			<string>public.ivf</string>
 		</array>
 		<key>ObjectName</key>
 		<string>Support for non-native media formats</string>
