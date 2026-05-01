@@ -127,6 +127,27 @@
 				</array>
 			</dict>
 		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.movie</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Duck IVF</string>
+			<key>UTTypeIdentifier</key>
+			<string>public.ivf</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>ivf</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>video/x-ivf</string>
+				</array>
+			</dict>
+		</dict>
 
 		<!-- Perian -->
 		<dict>

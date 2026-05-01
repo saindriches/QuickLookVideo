@@ -58,6 +58,7 @@
 				<string>org.mythtv.nuppelvideo</string>
 				<string>org.webmproject.webm</string>
 				<string>org.xiph.ogv</string>
+				<string>public.ivf</string>
 
 				<!-- defined by Perian < 1.3 -->
 				<string>org.perian.matroska</string>
