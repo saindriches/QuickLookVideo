@@ -13,51 +13,60 @@ import MediaExtension
 
 extension VideoDecoder {
 
-    // Supported planar YUV formats for HDR passthrough.
+    // Planar YUV formats supported by hdrConvertToBiPlanar for HDR passthrough.
     // All input formats are converted to 10-bit biplanar for macOS display pipeline.
-    private static let hdrFormats:
-        [Int32: (bitDepth: UInt32, uvShiftX: UInt32, uvShiftY: UInt32, videoRange: OSType, fullRange: OSType)] = [
-            // 420: half width, half height chroma
-            AV_PIX_FMT_YUV420P10LE.rawValue: (
-                10, 1, 1, kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_420YpCbCr10BiPlanarFullRange
-            ),
-            AV_PIX_FMT_YUV420P12LE.rawValue: (
-                12, 1, 1, kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_420YpCbCr10BiPlanarFullRange
-            ),
-            AV_PIX_FMT_YUV420P16LE.rawValue: (
-                16, 1, 1, kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_420YpCbCr10BiPlanarFullRange
-            ),
-            // 422: half width, full height chroma
-            AV_PIX_FMT_YUV422P10LE.rawValue: (
-                10, 1, 0, kCVPixelFormatType_422YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_422YpCbCr10BiPlanarFullRange
-            ),
-            AV_PIX_FMT_YUV422P12LE.rawValue: (
-                12, 1, 0, kCVPixelFormatType_422YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_422YpCbCr10BiPlanarFullRange
-            ),
-            AV_PIX_FMT_YUV422P16LE.rawValue: (
-                16, 1, 0, kCVPixelFormatType_422YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_422YpCbCr10BiPlanarFullRange
-            ),
-            // 444: full width, full height chroma
-            AV_PIX_FMT_YUV444P10LE.rawValue: (
-                10, 0, 0, kCVPixelFormatType_444YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_444YpCbCr10BiPlanarFullRange
-            ),
-            AV_PIX_FMT_YUV444P12LE.rawValue: (
-                12, 0, 0, kCVPixelFormatType_444YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_444YpCbCr10BiPlanarFullRange
-            ),
-            AV_PIX_FMT_YUV444P16LE.rawValue: (
-                16, 0, 0, kCVPixelFormatType_444YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_444YpCbCr10BiPlanarFullRange
-            ),
-        ]
+    private static let hdrFormats: Set<Int32> = [
+        AV_PIX_FMT_P010LE.rawValue,
+        AV_PIX_FMT_YUV420P9LE.rawValue,
+        AV_PIX_FMT_YUV420P10LE.rawValue,
+        AV_PIX_FMT_YUV420P12LE.rawValue,
+        AV_PIX_FMT_YUV420P16LE.rawValue,
+        AV_PIX_FMT_YUV422P9LE.rawValue,
+        AV_PIX_FMT_YUV422P10LE.rawValue,
+        AV_PIX_FMT_YUV422P12LE.rawValue,
+        AV_PIX_FMT_YUV422P16LE.rawValue,
+        AV_PIX_FMT_YUV444P9LE.rawValue,
+        AV_PIX_FMT_YUV444P10LE.rawValue,
+        AV_PIX_FMT_YUV444P12LE.rawValue,
+        AV_PIX_FMT_YUV444P16LE.rawValue,
+    ]
 
     // Build the HDR version of a PixelBufferConfig. Called from makePixelBufferConfig() in videodecoder.swift
     func hdrPixelBufferConfig(frame: UnsafePointer<AVFrame>) -> PixelBufferConfig? {
         // Must be a supported planar format and HDR (PQ or HLG transfer function)
-        guard let formatInfo = VideoDecoder.hdrFormats[frame.pointee.format],
+        guard VideoDecoder.hdrFormats.contains(frame.pointee.format),
             frame.pointee.color_trc == AVCOL_TRC_SMPTE2084 || frame.pointee.color_trc == AVCOL_TRC_ARIB_STD_B67
         else {
             return nil
         }
-        let pixelFormat = frame.pointee.color_range == AVCOL_RANGE_JPEG ? formatInfo.fullRange : formatInfo.videoRange
+
+        // Luma/component bit depth (use first component's depth as representative)
+        guard let descPtr = av_pix_fmt_desc_get(AVPixelFormat(frame.pointee.format)) else { return nil }
+        let bitDepth = UInt32(descPtr.pointee.comp.0.depth)
+
+        // Chroma subsampling
+        var hshift: Int32 = 0
+        var vshift: Int32 = 0
+        av_pix_fmt_get_chroma_sub_sample(AVPixelFormat(frame.pointee.format), &hshift, &vshift)
+
+        // Map subsampling to a 10-bit biplanar CVPixelFormat type.
+        let pixelFormat: OSType
+        switch (hshift, vshift) {
+        case (1, 1):  // 4:2:0
+            pixelFormat =
+                frame.pointee.color_range == AVCOL_RANGE_JPEG
+                ? kCVPixelFormatType_420YpCbCr10BiPlanarFullRange : kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
+        case (1, 0):  // 4:2:2
+            pixelFormat =
+                frame.pointee.color_range == AVCOL_RANGE_JPEG
+                ? kCVPixelFormatType_422YpCbCr10BiPlanarFullRange : kCVPixelFormatType_422YpCbCr10BiPlanarVideoRange
+        case (0, 0):  // 4:4:4
+            pixelFormat =
+                frame.pointee.color_range == AVCOL_RANGE_JPEG
+                ? kCVPixelFormatType_444YpCbCr10BiPlanarFullRange : kCVPixelFormatType_444YpCbCr10BiPlanarVideoRange
+        default:  // Unsupported subsampling for biplanar 10-bit
+            return nil
+        }
 
         // Build propagated attachments from the frame's color properties
         var attachments: [String: Any] = [:]
@@ -112,9 +121,9 @@ extension VideoDecoder {
                 kCVPixelBufferMetalCompatibilityKey as String: kCFBooleanTrue as CFBoolean,
                 kCVBufferPropagatedAttachmentsKey as String: attachments,
             ],
-            bitDepth: formatInfo.bitDepth,
-            uvShiftX: formatInfo.uvShiftX,
-            uvShiftY: formatInfo.uvShiftY
+            bitDepth: bitDepth,
+            uvShiftX: UInt32(hshift),
+            uvShiftY: UInt32(vshift)
         )
     }
 
@@ -132,6 +141,39 @@ extension VideoDecoder {
         let uvWidth = srcWidth >> Int(config.uvShiftX)
         let uvHeight = srcHeight >> Int(config.uvShiftY)
 
+        let status = CVPixelBufferLockBaseAddress(pixelBuffer, [])
+        guard status == kCVReturnSuccess else {
+            return CVReturnError(errorCode: Int(status), context: "CVPixelBufferLockBaseAddress")
+        }
+
+        // Frame is already biplanar P010. Just copy it.
+        if frame.pointee.format == AV_PIX_FMT_P010LE.rawValue {
+            // Copy Y plane rows
+            let srcYBase = UnsafeRawPointer(frame.pointee.data.0!)
+            let srcYStride = Int(frame.pointee.linesize.0)
+            let dstYBase = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0)!
+            let dstYStride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0)
+            for row in 0..<srcHeight {
+                let srcPtr = UnsafeRawPointer(srcYBase).advanced(by: row * srcYStride)
+                let dstPtr = dstYBase.advanced(by: row * dstYStride)
+                memcpy(dstPtr, srcPtr, Swift.min(srcYStride, dstYStride))
+            }
+
+            // Copy interleaved UV plane rows
+            let srcUVBase = UnsafeRawPointer(frame.pointee.data.1!)
+            let srcUVStride = Int(frame.pointee.linesize.1)
+            let dstUVBase = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1)!
+            let dstUVStride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1)
+            for row in 0..<uvHeight {
+                let srcPtr = UnsafeRawPointer(srcUVBase).advanced(by: row * srcUVStride)
+                let dstPtr = dstUVBase.advanced(by: row * dstUVStride)
+                memcpy(dstPtr, srcPtr, Swift.min(srcUVStride, dstUVStride))
+            }
+
+            CVPixelBufferUnlockBaseAddress(pixelBuffer, [])
+            return nil
+        }
+
         // Calculate the bit shift to convert source bit depth to P010's left-justified 10-bit layout.
         // P010: 10 significant bits in bits [15:6], bottom 6 bits zero.
         // Net shift = 16 - bitDepth (always left shift, or no shift for 16-bit).
@@ -139,11 +181,6 @@ extension VideoDecoder {
         // Source 12-bit: value in bits [11:0] -> shift left by 4 (loses 2 LSBs)
         // Source 16-bit: value in bits [15:0] -> no shift (loses 6 LSBs)
         let shift = 16 - Int(config.bitDepth)
-
-        let status = CVPixelBufferLockBaseAddress(pixelBuffer, [])
-        guard status == kCVReturnSuccess else {
-            return CVReturnError(errorCode: Int(status), context: "CVPixelBufferLockBaseAddress")
-        }
 
         // -- Y plane: shift-copy from AVFrame plane 0 to CVPixelBuffer plane 0 --
         let srcYPtr = UnsafeMutableRawPointer(frame.pointee.data.0!).assumingMemoryBound(to: UInt16.self)
@@ -194,7 +231,6 @@ extension VideoDecoder {
         #endif
 
         CVPixelBufferUnlockBaseAddress(pixelBuffer, [])
-
         return nil
     }
 
