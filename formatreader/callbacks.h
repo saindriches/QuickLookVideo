@@ -25,4 +25,4 @@ int64_t MEByteSource_seek(void *opaque, int64_t offset, int whence);
 }
 #endif
 
-#endif /* FFmpegLogBridge_h */
+#endif // !callbacks_h

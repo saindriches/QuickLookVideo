@@ -22,4 +22,4 @@ void setup_av_log_callback(void);
 }
 #endif
 
-#endif /* FFmpegLogBridge_h */
+#endif // !callbacks_h
