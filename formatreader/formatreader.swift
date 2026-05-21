@@ -139,21 +139,25 @@ class FormatReader: NSObject, MEFormatReader {
         guard fmt_ctx != nil else { return completionHandler(nil, MEError(.parsingFailure)) }  // we can be called even if we couldn't open the file
         var metadata: [AVMetadataItem] = []
         var prev: UnsafeMutablePointer<AVDictionaryEntry>? = nil
-        while let tag = av_dict_get(fmt_ctx!.pointee.metadata, "", prev, AV_DICT_IGNORE_SUFFIX) {
-            prev = tag
-            let identifier = FormatReader.identifiers[String(cString: tag.pointee.key).lowercased()]
-            let value = NSString(utf8String: tag.pointee.value)
-            guard identifier != nil, value != nil, value!.length != 0 else {
+        while let entry = av_dict_get(fmt_ctx!.pointee.metadata, "", prev, AV_DICT_IGNORE_SUFFIX) {
+            prev = entry
+            if let identifier = FormatReader.identifiers[String(cString: entry.pointee.key).lowercased()],
+               var lvalue = String(validatingUTF8: entry.pointee.value)?.lowercased(),
+                lvalue != "" && lvalue != "und", lvalue != "unk"
+            {
+                if identifier == .commonIdentifierLanguage {
+                    lvalue = Locale.canonicalLanguageIdentifier(from: lvalue)
+                }
+                let item = AVMutableMetadataItem()
+                item.dataType = String(kCMMetadataBaseDataType_UTF8)
+                item.identifier = identifier
+                item.value = lvalue as NSString
+                metadata.append(item)
+            } else {
                 logger.debug(
-                    "Unrecognised metadata key:\(String(cString:tag.pointee.key), privacy:.public) = \"\(value ?? "", privacy:.public)\""
+                    "Unrecognised metadata key:\(String(cString:entry.pointee.key), privacy:.public) = \"\(String(validatingUTF8: entry.pointee.value) ?? "", privacy:.public)\""
                 )
-                continue
             }
-            let item = AVMutableMetadataItem()
-            item.dataType = String(kCMMetadataBaseDataType_UTF8)
-            item.identifier = identifier
-            item.value = value
-            metadata.append(item)
         }
 
         // Find the best cover art stream.

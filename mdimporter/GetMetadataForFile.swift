@@ -382,7 +382,7 @@ private func setDate(_ key: CFString, _ value: String, in attrs: NSMutableDictio
 // In practice 3 letter codes are more common e.g. "eng", "jpn", "chi", "hin"
 private func appendLanguage(_ key: CFString, _ value: String, in attrs: NSMutableDictionary) {
     let lvalue = value.lowercased()
-    if lvalue == "und" || lvalue == "unk" { return }
-    let cocoalValue = Locale.canonicalLanguageIdentifier(from: lvalue)
-    append(key, cocoalValue as CFString, in: attrs, allowDuplicates: true)
+    if !lvalue.isEmpty && lvalue != "und" && lvalue != "unk" {
+        append(key, Locale.canonicalLanguageIdentifier(from: lvalue) as CFString, in: attrs, allowDuplicates: true)
+    }
 }

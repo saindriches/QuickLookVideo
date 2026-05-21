@@ -407,9 +407,11 @@ class AudioTrackReader: TrackReader, METrackReader {
         )
         trackInfo.isEnabled = isEnabled
         trackInfo.naturalTimescale = stream.pointee.time_base.den
-        if let entry = av_dict_get(stream.pointee.metadata, "language", nil, 0) {
-            // TODO: check language is RFC4646 compliant and try to map if not
-            trackInfo.extendedLanguageTag = String(validatingUTF8: entry.pointee.value)
+        if let entry = av_dict_get(stream.pointee.metadata, "language", nil, 0),
+            let lvalue = String(validatingUTF8: entry.pointee.value)?.lowercased(),
+            lvalue != "" && lvalue != "und" && lvalue != "unk"
+        {
+            trackInfo.extendedLanguageTag = Locale.canonicalLanguageIdentifier(from: lvalue)
         }
 
         completionHandler(trackInfo, nil)
