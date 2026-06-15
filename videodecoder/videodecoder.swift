@@ -78,6 +78,7 @@ class VideoDecoder: NSObject, MEVideoDecoder {
 
     // For RGB conversion using FFmpeg's swscale
     var sws_ctx: UnsafeMutablePointer<SwsContext>? = nil
+    var qtPalette: Data? = nil  // 1024-byte AV_PKT_DATA_PALETTE for PAL8 codecs when available
 
     // For format conversion using FFmpeg's zscale filter
     var filterGraph: UnsafeMutablePointer<AVFilterGraph>? = nil
@@ -272,17 +273,25 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                 "VideoDecoder: Can't open codec \(String(cString:avcodec_get_name(self.params.pointee.codec_id)), privacy: .public): \(error.localizedDescription)"
             )
             throw MEError(.unsupportedFeature)
-        } else if dec_ctx!.pointee.pix_fmt == AV_PIX_FMT_PAL8 {
-            // We don't have the palette so pointless to decode
-            logger.error(
-                "VideoDecoder: Unsupported depth: \(self.params.pointee.bits_per_coded_sample) in \(String(describing: self.formatDescription), privacy: .public))"
+        }
+
+        // Reconstruct QuickTime palette from VerbatimSampleDescription when available.
+        if dec_ctx!.pointee.pix_fmt == AV_PIX_FMT_PAL8 {
+            qtPalette = VideoDecoder.makeQuickTimePalette(
+                formatDescription: formatDescription,
+                codecID: params.pointee.codec_id
             )
-            throw MEError(.unsupportedFeature)
+            guard qtPalette != nil else {
+                // We don't have the palette so pointless to decode
+                logger.error(
+                    "VideoDecoder: Unsupported depth: \(self.params.pointee.bits_per_coded_sample) in \(String(describing: self.formatDescription), privacy: .public))"
+                )
+                throw MEError(.unsupportedFeature)
+            }
         }
 
         let pix_fmt_name = av_get_pix_fmt_name(dec_ctx!.pointee.pix_fmt)
         let color_space_name = av_color_space_name(dec_ctx!.pointee.colorspace)
-
         logger.log(
             "VideoDecoder: Decoding \(self.dec_ctx!.pointee.width)x\(self.dec_ctx!.pointee.height), \(pix_fmt_name != nil ? String(cString: pix_fmt_name!) : "unknown", privacy: .public) \(color_space_name != nil ? String(cString: color_space_name!) : "unknown", privacy: .public)"
         )
@@ -349,26 +358,32 @@ class VideoDecoder: NSObject, MEVideoDecoder {
         let doNotDisplay = (attachment[kCMSampleAttachmentKey_DoNotDisplay] as? Bool) ?? false
         pkt!.pointee.flags = (!notSync ? AV_PKT_FLAG_KEY : 0) | (doNotDisplay ? AV_PKT_FLAG_DISCARD : 0)
         var nb_sd: Int32 = 0
-        while nb_sd < Int(pkt!.pointee.side_data_elems) {
-            let importedSideData = attachment["SideData\(nb_sd)" as CFString] as! Data
+        while true {
+            guard let importedSideData = attachment["SideData\(nb_sd)" as CFString] as? Data else { break }
             let importedSideDataType = attachment["SideData\(nb_sd)Type" as CFString] as! CFNumber
             let sideData = av_malloc(importedSideData.count)!
             importedSideData.withUnsafeBytes { src in
                 let base = src.baseAddress!
                 memcpy(sideData, base, importedSideData.count)
             }
-            if nb_sd == 0 {
-                pkt!.pointee.side_data = av_mallocz(Int(pkt!.pointee.side_data_elems) * MemoryLayout<AVPacketSideData>.stride)!
-                    .assumingMemoryBound(to: AVPacketSideData.self)
-            }
-            av_packet_side_data_add(
-                &pkt!.pointee.side_data,
-                &nb_sd,  // will be incremented
-                AVPacketSideDataType((importedSideDataType) as! UInt32),
-                sideData,
-                importedSideData.count,
-                0
-            )
+            guard
+                av_packet_side_data_add(
+                    &pkt!.pointee.side_data,
+                    &nb_sd,  // will be incremented
+                    AVPacketSideDataType((importedSideDataType) as! UInt32),
+                    sideData,
+                    importedSideData.count,
+                    0
+                ) != nil
+            else { break }
+        }
+        pkt!.pointee.side_data_elems = nb_sd
+
+        // If demuxing via CoreMedia omitted palette side data, inject one reconstructed from stsd/ctab.
+        if let palette = qtPalette, av_packet_get_side_data(pkt, AV_PKT_DATA_PALETTE, nil) == nil,
+            let sideData = av_packet_new_side_data(pkt, AV_PKT_DATA_PALETTE, palette.count)
+        {
+            palette.copyBytes(to: UnsafeMutableRawBufferPointer(start: sideData, count: palette.count))
         }
 
         // Try to detect a discontinuous seek and flush the decoder if we see one
