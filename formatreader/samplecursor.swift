@@ -250,14 +250,18 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
             )
             return completionHandler(nil, error)
         }
+        CMSetAttachment(
+            sampleBuffer!,
+            key: kCMSampleBufferAttachmentKey_ResetDecoderBeforeDecoding,
+            value: self.discontinuity ? kCFBooleanTrue : kCFBooleanFalse,
+            attachmentMode: kCMAttachmentMode_ShouldNotPropagate
+        )
         let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer!, createIfNecessary: true)! as NSArray
         let attachment = attachments.firstObject as! NSMutableDictionary
         attachment[kCMSampleAttachmentKey_NotSync] =
             ((pkt.pointee.flags & AV_PKT_FLAG_KEY) == 0) ? kCFBooleanTrue : kCFBooleanFalse
         attachment[kCMSampleAttachmentKey_DoNotDisplay] =
             ((pkt.pointee.flags & AV_PKT_FLAG_DISCARD) != 0) ? kCFBooleanTrue : kCFBooleanFalse
-        attachment[kCMSampleBufferAttachmentKey_ResetDecoderBeforeDecoding] =
-            self.discontinuity ? kCFBooleanTrue : kCFBooleanFalse
         for i in 0..<Int(pkt.pointee.side_data_elems) {
             attachment["SideData\(i)" as CFString] = CFDataCreate(
                 kCFAllocatorDefault,

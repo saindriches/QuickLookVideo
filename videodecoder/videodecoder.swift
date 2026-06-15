@@ -354,7 +354,6 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             sampleBuffer.presentationTimeStamp.isNumeric ? sampleBuffer.presentationTimeStamp.value : AV_NOPTS_VALUE
         let notSync = (attachment[kCMSampleAttachmentKey_NotSync] as? Bool) ?? false
         let doNotDisplay = (attachment[kCMSampleAttachmentKey_DoNotDisplay] as? Bool) ?? false
-        let discontinuity = (attachment[kCMSampleBufferAttachmentKey_ResetDecoderBeforeDecoding] as? Bool) ?? false
         pkt!.pointee.flags = (!notSync ? AV_PKT_FLAG_KEY : 0) | (doNotDisplay ? AV_PKT_FLAG_DISCARD : 0)
         var nb_sd: Int32 = 0
         while nb_sd < Int(pkt!.pointee.side_data_elems) {
@@ -380,7 +379,9 @@ class VideoDecoder: NSObject, MEVideoDecoder {
         }
 
         // Try to detect a discontinuous seek and flush the decoder if we see one
-        if discontinuity {
+        if (CMGetAttachment(sampleBuffer, key: kCMSampleBufferAttachmentKey_ResetDecoderBeforeDecoding, attachmentModeOut: nil)
+            as? Bool) ?? false
+        {
             logger.debug(
                 "VideoDecoder decodeFrame at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public): Seek"
             )
