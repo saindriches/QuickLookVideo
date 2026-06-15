@@ -51,6 +51,7 @@
 		ABB17F932EEC687200733965 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ABB719E62924069600F13C24 /* Assets.xcassets */; };
 		ABB719E72924069600F13C24 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ABB719E62924069600F13C24 /* Assets.xcassets */; };
 		ABBC10E01C1DF64E00B25E28 /* liblzma.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ABBC10DE1C1DF5F600B25E28 /* liblzma.5.dylib */; };
+		ABDC7B082FE0783F00E0047A /* libswscale.9.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA141C62D2EE49D0040A4E6 /* libswscale.9.dylib */; };
 		ABE23BD41D25903D004E9D26 /* VideoToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABE23BD11D258F6C004E9D26 /* VideoToolbox.framework */; };
 		ABE23BD71D25914C004E9D26 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABE23BD61D25914C004E9D26 /* AudioToolbox.framework */; };
 		ABE23BDA1D2591F8004E9D26 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABE23BD91D2591F8004E9D26 /* CoreMedia.framework */; };
@@ -311,6 +312,7 @@
 				AB006CDF2F2A347D0014937F /* libavfilter.11.dylib in Frameworks */,
 				AB0049F82F223E8F0054D7B0 /* libavcodec.62.dylib in Frameworks */,
 				AB0049F72F223E890054D7B0 /* libavutil.60.dylib in Frameworks */,
+				ABDC7B082FE0783F00E0047A /* libswscale.9.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

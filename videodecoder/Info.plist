@@ -89,6 +89,18 @@
 			</dict>
 			<dict>
 				<key>CodecName</key>
+				<string>DXV 1</string>
+				<key>CodecType</key>
+				<string>DXDI</string>
+			</dict>
+			<dict>
+				<key>CodecName</key>
+				<string>DXV 3</string>
+				<key>CodecType</key>
+				<string>DXD3</string>
+			</dict>
+			<dict>
+				<key>CodecName</key>
 				<string>FLIC animation</string>
 				<key>CodecType</key>
 				<string>flic</string>

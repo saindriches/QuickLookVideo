@@ -32,6 +32,8 @@ class VideoDecoder: NSObject, MEVideoDecoder {
         0x4861_7059: AV_CODEC_ID_HAP,  // 'HapY'
         0x4861_704D: AV_CODEC_ID_HAP,  // 'HapM'
         0x4861_7041: AV_CODEC_ID_HAP,  // 'HapA'
+        0x4458_4449: AV_CODEC_ID_DXV,  // 'DXDI'
+        0x4458_4433: AV_CODEC_ID_DXV,  // 'DXD3'
         0x666C_6963: AV_CODEC_ID_FLIC,  // 'flic'
         0x4146_4C43: AV_CODEC_ID_FLIC,  // 'AFLC'
         0x5254_3231: AV_CODEC_ID_INDEO2,  // 'RT21'
@@ -49,14 +51,6 @@ class VideoDecoder: NSObject, MEVideoDecoder {
         0x4d50_3431: AV_CODEC_ID_MSMPEG4V1,  // 'MP41'
         0x4d50_3432: AV_CODEC_ID_MSMPEG4V2,  // 'MP42'
         0x4d50_3433: AV_CODEC_ID_MSMPEG4V3,  // 'MP43'
-    ]
-
-    // Supported pixel formats for QuickTime animation. Non-paletised only.
-    // TODO: extract the palette from VerbatimSampleDescription see ff_get_qtpalette ?
-    static let animDepths: [Int: AVPixelFormat] = [
-        16: AV_PIX_FMT_RGB555LE,
-        24: AV_PIX_FMT_RGB24,
-        32: AV_PIX_FMT_ARGB,
     ]
 
     let codecType: CMVideoCodecType
@@ -81,6 +75,9 @@ class VideoDecoder: NSObject, MEVideoDecoder {
     var scaleYTemp: UnsafeMutableRawPointer? = nil
     var scaleCbTemp: UnsafeMutableRawPointer? = nil
     var scaleCrTemp: UnsafeMutableRawPointer? = nil
+
+    // For RGB conversion using FFmpeg's swscale
+    var sws_ctx: UnsafeMutablePointer<SwsContext>? = nil
 
     // For format conversion using FFmpeg's zscale filter
     var filterGraph: UnsafeMutablePointer<AVFilterGraph>? = nil
@@ -147,31 +144,17 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             // Didn't come from our formatreader, e.g. from .avi or .mov. Try to decode anyway.
             let depth = videoFormatDescription.extensions[kCMFormatDescriptionExtension_Depth as CFString] as? NSNumber
             switch codecID {
-            case AV_CODEC_ID_QTRLE:
-                if let depth, let pixFmt = VideoDecoder.animDepths[depth.intValue] {
-                    params.pointee.format = pixFmt.rawValue
-                    params.pointee.color_range = AVCOL_RANGE_JPEG
-                } else {
-                    logger.error(
-                        "VideoDecoder: Unsupported depth: \(depth) in \(String(describing: self.formatDescription), privacy: .public))"
-                    )
-                    throw MEError(.unsupportedFeature)
-                }
-            case AV_CODEC_ID_RPZA:
-                params.pointee.format = AV_PIX_FMT_RGB555LE.rawValue
+
+            // RGB
+            case AV_CODEC_ID_QTRLE, AV_CODEC_ID_RPZA, AV_CODEC_ID_CINEPAK, AV_CODEC_ID_HAP, AV_CODEC_ID_DXV, AV_CODEC_ID_FLIC:
+                // Pixel format is set from codec_tag and/or bits_per_coded_sample in codec _init() under avcodec_open2()
                 params.pointee.color_range = AVCOL_RANGE_JPEG
+                params.pointee.color_space = AVCOL_SPC_RGB
+
+            // YUV
             case AV_CODEC_ID_AIC:
                 params.pointee.format = AV_PIX_FMT_YUV420P.rawValue
                 params.pointee.color_range = AVCOL_RANGE_MPEG
-            case AV_CODEC_ID_CINEPAK:
-                params.pointee.format = AV_PIX_FMT_RGB24.rawValue
-                params.pointee.color_range = AVCOL_RANGE_JPEG
-            case AV_CODEC_ID_HAP:
-                // FFmpeg hapdec.c sets pix_fmt to one of RGB0 (Hap1/HapY), RGBA (Hap5/HapM), or GRAY8 (HapA) based on fourCC in codec_tag
-                params.pointee.color_range = AVCOL_RANGE_JPEG
-            case AV_CODEC_ID_FLIC:
-                // FFmpeg flicvideo.c sets pix_fmt based on depth
-                params.pointee.color_range = AVCOL_RANGE_JPEG
             case AV_CODEC_ID_INDEO2, AV_CODEC_ID_INDEO3, AV_CODEC_ID_INDEO4, AV_CODEC_ID_INDEO5:
                 params.pointee.format = AV_PIX_FMT_YUV410P.rawValue
                 params.pointee.color_range = AVCOL_RANGE_MPEG
@@ -289,16 +272,26 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                 "VideoDecoder: Can't open codec \(String(cString:avcodec_get_name(self.params.pointee.codec_id)), privacy: .public): \(error.localizedDescription)"
             )
             throw MEError(.unsupportedFeature)
+        } else if dec_ctx!.pointee.pix_fmt == AV_PIX_FMT_PAL8 {
+            // We don't have the palette so pointless to decode
+            logger.error(
+                "VideoDecoder: Unsupported depth: \(self.params.pointee.bits_per_coded_sample) in \(String(describing: self.formatDescription), privacy: .public))"
+            )
+            throw MEError(.unsupportedFeature)
         }
 
+        let pix_fmt_name = av_get_pix_fmt_name(dec_ctx!.pointee.pix_fmt)
+        let color_space_name = av_color_space_name(dec_ctx!.pointee.colorspace)
+
         logger.log(
-            "VideoDecoder: Decoding \(self.dec_ctx!.pointee.width)x\(self.dec_ctx!.pointee.height), \(String(cString:av_get_pix_fmt_name(self.dec_ctx!.pointee.pix_fmt)), privacy: .public) \(String(cString:av_color_space_name(self.dec_ctx!.pointee.colorspace)), privacy: .public)"
+            "VideoDecoder: Decoding \(self.dec_ctx!.pointee.width)x\(self.dec_ctx!.pointee.height), \(pix_fmt_name != nil ? String(cString: pix_fmt_name!) : "unknown", privacy: .public) \(color_space_name != nil ? String(cString: color_space_name!) : "unknown", privacy: .public)"
         )
 
     }
 
     deinit {
         if dec_ctx != nil { avcodec_free_context(&dec_ctx) }
+        if sws_ctx != nil { sws_freeContext(sws_ctx) }
         if sink_ctx != nil { avfilter_free(sink_ctx) }
         if src_ctx != nil { avfilter_free(src_ctx) }
         if filterGraph != nil { avfilter_graph_free(&filterGraph) }
@@ -423,13 +416,6 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             )
         #endif
 
-        if frame!.pointee.opaque != nil {
-            // No conversion required - return the pixel buffer allocated in get_buffer2
-            let pixelBuffer = Unmanaged<CVPixelBuffer>.fromOpaque(frame!.pointee.opaque).takeUnretainedValue()
-            av_frame_free(&frame)
-            return completionHandler(pixelBuffer, [], nil)  // early return
-        }
-
         // Fix up color info on the decoded frame
         VideoDecoder.fixupColors(frame: frame!)
 
@@ -477,6 +463,19 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             return completionHandler(pixelBuffer, [], nil)
         }
 
+        if let error = RGBConvertToBGRA(frame: &frame!.pointee, pixelBuffer: &pixelBuffer) {
+            if error.errorCode != kCVReturnUnsupported {
+                logger.error(
+                    "VideoDecoder at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public) decodeFrame: RGB conversion failed: \(error.localizedDescription, privacy: .public)"
+                )
+                av_frame_free(&frame)
+                return completionHandler(nil, .frameDropped, error)
+            }
+        } else {
+            av_frame_free(&frame)
+            return completionHandler(pixelBuffer, [], nil)
+        }
+
         // Fall back to zscale conversion. Should work for pretty-much any source format.
         var error = zscaleConvertToGBRP(frame: &frame, pixelBuffer: &pixelBuffer)
         if error == nil {
@@ -496,6 +495,14 @@ class VideoDecoder: NSObject, MEVideoDecoder {
     // Infer color info from the decoded frame. Make educated guesses for unspecified values.
     // Mutates the frame's color_primaries, color_trc and colorspace fields in place.
     class func fixupColors(frame: UnsafeMutablePointer<AVFrame>) {
+
+        // RGB space. Set color info in case we somehow end up on the zscale path.
+        if frame.pointee.colorspace == AVCOL_SPC_RGB {
+            frame.pointee.color_range = AVCOL_RANGE_JPEG
+            frame.pointee.color_primaries = AVCOL_PRI_BT709
+            frame.pointee.color_trc = AVCOL_TRC_IEC61966_2_1
+            return
+        }
 
         // Let presence of SMPTE 2086:2014 side data override anything else in the AVFrame
         if av_frame_get_side_data(frame, AV_FRAME_DATA_MASTERING_DISPLAY_METADATA) != nil
@@ -536,13 +543,14 @@ class VideoDecoder: NSObject, MEVideoDecoder {
         // SDR. Assume values based on input format and whether HD or SD
         // Follow mpv heursitics https://wiki.x266.mov/docs/colorimetry/primaries
         if frame.pointee.width >= 1280 || frame.pointee.height > 576 || frame.pointee.format != AV_PIX_FMT_YUV420P.rawValue {
-            frame.pointee.color_primaries = AVCOL_PRI_BT709
-            frame.pointee.color_trc = AVCOL_TRC_BT709
-            frame.pointee.colorspace = AVCOL_SPC_BT709
+            if frame.pointee.color_primaries == AVCOL_PRI_UNSPECIFIED { frame.pointee.color_primaries = AVCOL_PRI_BT709 }
+            if frame.pointee.colorspace == AVCOL_SPC_UNSPECIFIED { frame.pointee.colorspace = AVCOL_SPC_BT709 }
         } else {
-            frame.pointee.color_primaries = AVCOL_PRI_SMPTE170M
-            frame.pointee.color_trc = AVCOL_TRC_BT709  // This got retconned when HDR came out
-            frame.pointee.colorspace = AVCOL_SPC_SMPTE170M
+            if frame.pointee.color_primaries == AVCOL_PRI_UNSPECIFIED { frame.pointee.color_primaries = AVCOL_PRI_SMPTE170M }
+            if frame.pointee.colorspace == AVCOL_SPC_UNSPECIFIED { frame.pointee.colorspace = AVCOL_SPC_SMPTE170M }
+        }
+        if frame.pointee.color_trc == AVCOL_TRC_UNSPECIFIED {
+            frame.pointee.color_trc = frame.pointee.color_range == AVCOL_RANGE_JPEG ? AVCOL_TRC_IEC61966_2_1 : AVCOL_TRC_BT709
         }
     }
 

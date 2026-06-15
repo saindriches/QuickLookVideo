@@ -53,7 +53,14 @@ extension VideoDecoder {
         /* buffer video source: the decoded frames from the decoder will be inserted here. */
         let srcArgs =
             "video_size=\(frame.width)x\(frame.height):pix_fmt=\(frame.format):colorspace=\(String(cString: av_color_space_name(frame.colorspace))):range=\(frame.color_range == AVCOL_RANGE_JPEG ? "pc" : "tv"):time_base=1/1000"  // time_base is required but irrelevant
-        let sinkArgs = "pixel_formats=\(AV_PIX_FMT_GBRP.rawValue)"  // should use AV_PIX_FMT_GBRPF32LE for HDR to match tonemap output, but vImage conversion broken
+        let alpha: Bool = {
+            if let desc = av_pix_fmt_desc_get(AVPixelFormat(frame.format)) {
+                return (desc.pointee.flags & UInt64(AV_PIX_FMT_FLAG_ALPHA)) != 0
+            } else {
+                return false
+            }
+        }()
+        let sinkArgs = "pixel_formats=\(alpha ? AV_PIX_FMT_GBRAP.rawValue : AV_PIX_FMT_GBRP.rawValue)"  // should use AV_PIX_FMT_GBRPF32LE for HDR to match tonemap output, but vImage conversion broken
         logger.log(
             "VideDecoder using filter with input \"\(srcArgs, privacy: .public)\", filter \"\(filterDesc, privacy: .public)\", output \"\(sinkArgs, privacy: .public)\""
         )
@@ -128,9 +135,10 @@ extension VideoDecoder {
 
         let matrixmap: [AVColorSpace: String] = [
             AVCOL_SPC_BT709: "709",
+            AVCOL_SPC_BT470BG: "470bg",
             AVCOL_SPC_SMPTE170M: "170m",
             AVCOL_SPC_SMPTE240M: "240m",
-            AVCOL_SPC_BT470BG: "470bg",
+            AVCOL_SPC_YCGCO: "ycgco",
             AVCOL_SPC_BT2020_NCL: "2020_ncl",
             AVCOL_SPC_BT2020_CL: "2020_cl",
             AVCOL_SPC_FCC: "170m",  // Close enough

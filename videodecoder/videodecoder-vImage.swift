@@ -121,6 +121,7 @@ extension VideoDecoder {
         guard status == kCVReturnSuccess else {
             return CVReturnError(errorCode: Int(status), context: "CVPixelBufferLockBaseAddress")
         }
+        defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, []) }
         var dstBGRA = vImage_Buffer(
             data: CVPixelBufferGetBaseAddress(pixelBuffer)!.assumingMemoryBound(to: UInt8.self),
             height: vImagePixelCount(dstHeight),
@@ -207,7 +208,6 @@ extension VideoDecoder {
         default:
             ret = kvImageUnsupportedConversion  // Shouldn't get here
         }
-        CVPixelBufferUnlockBaseAddress(pixelBuffer, [])
         guard ret == kvImageNoError else {
             let error = vImageError(errorCode: ret, context: "vImageConvert")
             return error
@@ -318,6 +318,12 @@ extension VideoDecoder {
             width: vImagePixelCount(width),
             rowBytes: Int(frame.linesize.2)
         )
+        var srcA = vImage_Buffer(
+            data: frame.data.3,
+            height: vImagePixelCount(height),
+            width: vImagePixelCount(width),
+            rowBytes: Int(frame.linesize.3)
+        )
 
         let status = CVPixelBufferLockBaseAddress(pixelBuffer, [])
         guard status == kCVReturnSuccess else {
@@ -340,6 +346,9 @@ extension VideoDecoder {
         case AV_PIX_FMT_GBRP.rawValue:
             // SDR path: 8-bit planar to BGRA
             ret = vImageConvert_Planar8ToBGRX8888(&srcB, &srcG, &srcR, 0xff, &dst, 0)
+        case AV_PIX_FMT_GBRAP.rawValue:
+            // SDR path: 8-bit planar to BGRA
+            ret = vImageConvert_Planar8toARGB8888(&srcB, &srcG, &srcR, &srcA, &dst, 0)
         default:
             ret = kvImageUnsupportedConversion  // Shouldn't get here
         }
