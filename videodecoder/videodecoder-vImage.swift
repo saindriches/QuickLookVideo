@@ -74,26 +74,17 @@ extension VideoDecoder {
         let dstWidth = Int(CVPixelBufferGetWidth(pixelBuffer))
         let dstHeight = Int(CVPixelBufferGetHeight(pixelBuffer))
 
-        guard srcWidth == dstWidth || format == kvImage420Yp8_Cb8_Cr8 else {
-            return vImageError(errorCode: kvImageUnsupportedConversion, context: "vImageConvertToBGRA")  // Can only handle anamorphic if yuv420p
+        guard srcWidth == dstWidth || format == kvImage420Yp8_Cb8_Cr8,  // Can only handle anamorphic if yuv420p
+              var range = VideoDecoder.pixelRanges[frame.color_range == AVCOL_RANGE_JPEG],
+              let matrix = VideoDecoder.colorMatrices[frame.colorspace] else {
+            return vImageError(errorCode: kvImageUnsupportedConversion, context: "vImageConvertToBGRA")
         }
 
         if conversionInfo == nil {
-            var range = VideoDecoder.pixelRanges[frame.color_range == AVCOL_RANGE_JPEG]
-            var matrix = VideoDecoder.colorMatrices[frame.colorspace]
-            if matrix == nil {
-                matrix = VideoDecoder.colorMatrices[dstWidth < 1280 && dstHeight < 720 ? AVCOL_SPC_BT470BG : AVCOL_SPC_BT709]
-                if frame.colorspace != AVCOL_SPC_UNSPECIFIED {
-                    let colorspace = frame.colorspace
-                    logger.log(
-                        "VideoDecoder unsupported colorspace \"\(String(cString: av_color_space_name(colorspace)), privacy: .public)\" for vImageConvert. Defaulting to \(dstWidth < 1280 && dstHeight < 720 ? "BT.601" : "BT.709", privacy: .public)"
-                    )
-                }
-            }
             conversionInfo = vImage_YpCbCrToARGB()
             let ret = vImageConvert_YpCbCrToARGB_GenerateConversion(
-                matrix!,
-                &range!,
+                matrix,
+                &range,
                 &conversionInfo!,
                 format,
                 kvImageARGB8888,

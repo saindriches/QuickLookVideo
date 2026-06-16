@@ -112,43 +112,9 @@ extension VideoDecoder {
 
     private func makeFilterChain(frame: inout AVFrame, pixelBuffer: inout CVPixelBuffer) -> String {
 
-        // zscale accepts a smaller set of values than FFmpeg, and with different names than av_color_space_name() etc
-        // https://ayosec.github.io/ffmpeg-filters-docs/8.0/Filters/Video/zscale.html
-
-        let primariesMap: [AVColorPrimaries: String] = [
-            AVCOL_PRI_BT709: "709",
-            AVCOL_PRI_SMPTE170M: "170m",
-            AVCOL_PRI_SMPTE240M: "240m",
-            AVCOL_PRI_BT2020: "2020",
-            AVCOL_PRI_BT470M: "709",  // SDR
-        ]
-
-        let transferMap: [AVColorTransferCharacteristic: String] = [
-            AVCOL_TRC_BT709: "709",
-            AVCOL_TRC_LINEAR: "linear",
-            AVCOL_TRC_SMPTE2084: "smpte2084",  // PQ
-            AVCOL_TRC_ARIB_STD_B67: "arib-std-b67",  // HLG
-            AVCOL_TRC_BT2020_10: "2020_10",
-            AVCOL_TRC_BT2020_12: "2020_12",
-            AVCOL_TRC_IEC61966_2_1: "iec61966-2-1",  // sRGB
-        ]
-
-        let matrixmap: [AVColorSpace: String] = [
-            AVCOL_SPC_BT709: "709",
-            AVCOL_SPC_BT470BG: "470bg",
-            AVCOL_SPC_SMPTE170M: "170m",
-            AVCOL_SPC_SMPTE240M: "240m",
-            AVCOL_SPC_YCGCO: "ycgco",
-            AVCOL_SPC_BT2020_NCL: "2020_ncl",
-            AVCOL_SPC_BT2020_CL: "2020_cl",
-            AVCOL_SPC_FCC: "170m",  // Close enough
-            AVCOL_SPC_ICTCP: "2020_ncl",  // Close enough
-        ]
-
-        // Specify color info in zscale syntax, use BT.709 for cases that zscale doesn't support
-        let pin = primariesMap[frame.color_primaries] ?? "709"
-        let tin = transferMap[frame.color_trc] ?? "709"
-        let min = matrixmap[frame.colorspace] ?? "709"
+        let pin = String(cString: av_color_primaries_name(frame.color_primaries))
+        let tin = String(cString: av_color_transfer_name(frame.color_trc))
+        let min = String(cString: av_color_space_name(frame.colorspace))
 
         // pixelBuffer.width != frame.width for anamorphic
         let out_w = CVPixelBufferGetWidth(pixelBuffer)
@@ -159,11 +125,6 @@ extension VideoDecoder {
                 zscale=w=\(out_w):h=\(frame.height):f=lanczos:pin=\(pin):tin=\(tin):min=\(min):primaries=709:transfer=linear:matrix=709:npl=100,
                 tonemap=hable
                 """
-        } else if frame.color_primaries == AVCOL_PRI_BT709 && frame.color_trc == AVCOL_TRC_BT709
-            && frame.colorspace == AVCOL_SPC_BT709
-        {
-            // SDR content that's already in (or we've assumed to be in) BT.709
-            return "scale=w=\(out_w):h=\(frame.height):sws_flags=lanczos"
         } else {
             // SDR content - SD or HD
             return
