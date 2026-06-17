@@ -338,8 +338,11 @@ extension VideoDecoder {
             // SDR path: 8-bit planar to BGRA
             ret = vImageConvert_Planar8ToBGRX8888(&srcB, &srcG, &srcR, 0xff, &dst, 0)
         case AV_PIX_FMT_GBRAP.rawValue:
-            // SDR path: 8-bit planar to BGRA
+            // SDR path: 8-bit planar to BGRA and premultiply alpha since that's what the display pipeline expects
             ret = vImageConvert_Planar8toARGB8888(&srcB, &srcG, &srcR, &srcA, &dst, 0)
+            if ret == kvImageNoError && frame.alpha_mode != AVALPHA_MODE_PREMULTIPLIED {
+                ret = vImagePremultiplyData_RGBA8888(&dst, &dst, 0)
+            }
         default:
             ret = kvImageUnsupportedConversion  // Shouldn't get here
         }

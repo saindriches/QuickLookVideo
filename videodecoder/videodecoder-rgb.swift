@@ -4,6 +4,7 @@
 //  RGB format conversion to BGRA using FFmpeg swscale.
 //
 
+import Accelerate
 import CoreVideo
 import Foundation
 import MediaExtension
@@ -71,9 +72,22 @@ extension VideoDecoder {
                 }
             }
         }
-
         guard outHeight > 0 else {
             return AVERROR(errorCode: Int32(outHeight), context: "sws_scale")
+        }
+
+        // Premultiply alpha since that's what the display pipeline expects
+        if desc.flags & UInt64(AV_PIX_FMT_FLAG_ALPHA) != 0 && frame.alpha_mode != AVALPHA_MODE_PREMULTIPLIED {
+            var dst = vImage_Buffer(
+                data: dstPlane0,
+                height: vImagePixelCount(dstHeight),
+                width: vImagePixelCount(dstWidth),
+                rowBytes: Int(dstStride0)
+            )
+            let ret = vImagePremultiplyData_RGBA8888(&dst, &dst, 0)
+            guard ret == kvImageNoError else {
+                return vImageError(errorCode: ret, context: "RGBConvertToBGRA")
+            }
         }
 
         return nil
