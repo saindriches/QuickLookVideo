@@ -290,6 +290,11 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             }
         }
 
+        // Hack! DXV encodes width as a multiple of 16 for some reason even though the underlying data blocks are 4x4
+        if params.pointee.codec_id == AV_CODEC_ID_DXV {
+            dec_ctx!.pointee.coded_width = (dec_ctx!.pointee.coded_width + 15) & -16
+        }
+
         let pix_fmt_name = av_get_pix_fmt_name(dec_ctx!.pointee.pix_fmt)
         let color_space_name = av_color_space_name(dec_ctx!.pointee.colorspace)
         logger.log(
