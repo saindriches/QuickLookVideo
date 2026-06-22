@@ -21,7 +21,7 @@ import CoreMedia
 import Foundation
 
 #if DEBUG
-    let TRACE_PACKET_DEMUXER = true
+    let TRACE_PACKET_DEMUXER = false
 #else
     let TRACE_PACKET_DEMUXER = false
 #endif

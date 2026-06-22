@@ -11,6 +11,12 @@ import CoreVideo
 import Foundation
 import MediaExtension
 
+#if DEBUG
+    let TRACE_VIDEODECODER: Bool = true
+#else
+    let TRACE_VIDEODECODER: Bool = false
+#endif
+
 // Swift Error wrapper for CoreVideo CVReturn codes
 struct CVReturnError: LocalizedError, CustomNSError {
     let errorCode: Int
@@ -395,9 +401,11 @@ class VideoDecoder: NSObject, MEVideoDecoder {
         if (CMGetAttachment(sampleBuffer, key: kCMSampleBufferAttachmentKey_ResetDecoderBeforeDecoding, attachmentModeOut: nil)
             as? Bool) ?? false
         {
-            logger.debug(
-                "VideoDecoder decodeFrame at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public): Seek"
-            )
+            if TRACE_VIDEODECODER {
+                logger.debug(
+                    "VideoDecoder decodeFrame at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public): Seek"
+                )
+            }
             avcodec_send_packet(dec_ctx, nil)
             avcodec_flush_buffers(dec_ctx)
         }
@@ -430,11 +438,11 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             return completionHandler(nil, .frameDropped, MEError(.internalFailure))
         }
 
-        #if DEBUG
+        if TRACE_VIDEODECODER {
             logger.debug(
                 "VideoDecoder decodeFrame at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public) size:0x\(UInt(totalLength), format:.hex) flags:\(frame!.pointee.flags & AV_PKT_FLAG_KEY != 0 ? "K" : "_", privacy: .public)\(frame!.pointee.flags & AV_PKT_FLAG_DISCARD != 0 ? "D" : "_", privacy: .public)_ "
             )
-        #endif
+        }
 
         // Fix up color info on the decoded frame
         VideoDecoder.fixupColors(frame: frame!)
