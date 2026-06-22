@@ -14,6 +14,9 @@ let logger = Logger(subsystem: "uk.org.marginal.qlvideo", category: "formatreade
 
 class FormatReaderFactory: NSObject, MEFormatReaderExtension {
 
+    private var infoSignal: DispatchSourceSignal?
+    private var formatReaders = NSHashTable<FormatReader>.weakObjects()  // for dumpState()
+
     required override init() {
         super.init()
         // Send FFmpeg logs to system log
@@ -24,6 +27,16 @@ class FormatReaderFactory: NSObject, MEFormatReaderExtension {
             av_log_set_level(AV_LOG_WARNING | AV_LOG_SKIP_REPEATED)
         #endif
         setup_av_log_callback()
+
+        // Dump state to log on receipt of SIGINFO
+        // See https://blog.smittytone.net/2021/07/19/tackle-async-signal-safety-in-swift/
+        signal(SIGINFO, SIG_IGN)  // should be default behaviour, but lets be sure
+        infoSignal = DispatchSource.makeSignalSource(signal: SIGINFO, queue: .global(qos: .background))
+        infoSignal?.setEventHandler { [self] in
+            _ = infoSignal?.data  // Indicate that we're handling the signal. Is this necessary?
+            dumpState()
+        }
+        infoSignal?.resume()
     }
 
     func formatReader(with primaryByteSource: MEByteSource, options: MEFormatReaderInstantiationOptions?) throws
@@ -35,6 +48,30 @@ class FormatReaderFactory: NSObject, MEFormatReaderExtension {
                 "FormatReaderFactory formatReader \(primaryByteSource.fileName, privacy:.public) \(identifier, privacy:.public) \(ProcessInfo().operatingSystemVersionString, privacy:.public)"
             )
         #endif  // DEBUG
-        return FormatReader(primaryByteSource: primaryByteSource)
+        let reader = FormatReader(primaryByteSource: primaryByteSource)
+        formatReaders.add(reader)
+        return reader
+    }
+
+    func dumpState() {
+        logger.info("FormatReader state:")
+        var path: [Int8] = Array(repeating: 0, count: Int(MAXPATHLEN))
+        for fd: Int32 in 3..<2560 {
+            let ret = fcntl(fd, F_GETPATH, &path)
+            if ret >= 0 {
+                logger.info("FD \(fd)\t\(String(cString: path), privacy:.public)")
+            }
+        }
+        for formatReader in formatReaders.allObjects {
+            logger.info("FormatReader for \(formatReader.byteSource.fileName, privacy: .public)")
+            for trackReader in formatReader.trackReaders.allObjects {
+                logger.info(
+                    "  TrackReader for stream #\(trackReader.index) \(trackReader.formatDescription!.mediaType, privacy: .public) \(trackReader.formatDescription!.mediaSubType, privacy: .public)"
+                )
+                for sampleCursor in trackReader.sampleCursors.allObjects {
+                    logger.info("    \(sampleCursor.debugDescription, privacy: .public)")
+                }
+            }
+        }
     }
 }

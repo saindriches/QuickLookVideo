@@ -44,6 +44,7 @@ class FormatReader: NSObject, MEFormatReader {
 
     @objc let byteSource: MEByteSource
     @objc var avio_filepos: Int64 = 0
+    var trackReaders = NSHashTable<TrackReader>.weakObjects()  // for dumpState()
     var avio_ctx: UnsafeMutablePointer<AVIOContext>? = nil
     var defaults: UserDefaults?
     var fmt_ctx: UnsafeMutablePointer<AVFormatContext>? = nil
@@ -258,6 +259,7 @@ class FormatReader: NSObject, MEFormatReader {
                 )
             }
         }
+        for reader in readers { trackReaders.add(reader as! TrackReader) }
         completionHandler(readers, nil)
     }
 }

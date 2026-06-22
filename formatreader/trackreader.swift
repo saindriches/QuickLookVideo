@@ -16,6 +16,7 @@ class TrackReader: NSObject {
     weak var format: FormatReader?
     var stream: UnsafeMutablePointer<AVStream>
     var formatDescription: CMFormatDescription? = nil
+    var sampleCursors = NSHashTable<SampleCursor>.weakObjects()  // for dumpState()
     var dec_ctx: UnsafeMutablePointer<AVCodecContext>? = nil  // for decoding audio
     var swr_ctx: UnsafeMutablePointer<SwrContext>? = nil  //  "
 

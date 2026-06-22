@@ -404,15 +404,14 @@ class VideoTrackReader: TrackReader, METrackReader {
         }
         guard let format = format else { return completionHandler(nil, MEError(.internalFailure)) }
         do {
-            return completionHandler(
-                try SampleCursor(
-                    format: format,
-                    track: self,
-                    index: index,
-                    atPresentationTimeStamp: presentationTimeStamp
-                ),
-                nil
+            let cursor = try SampleCursor(
+                format: format,
+                track: self,
+                index: index,
+                atPresentationTimeStamp: presentationTimeStamp
             )
+            sampleCursors.add(cursor)
+            return completionHandler(cursor, nil)
         } catch {
             logger.error(
                 "VideoTrackReader stream \(self.index) generateSampleCursor atPresentationTimeStamp \(presentationTimeStamp, privacy: .public): \(error.localizedDescription, privacy: .public)"
@@ -429,16 +428,15 @@ class VideoTrackReader: TrackReader, METrackReader {
         }
         guard let format = format else { return completionHandler(nil, MEError(.internalFailure)) }
         do {
-            return completionHandler(
-                try SampleCursor(
-                    format: format,
-                    track: self,
-                    index: index,
-                    atPresentationTimeStamp: stream.pointee.start_time != AV_NOPTS_VALUE
-                        ? CMTime(value: stream.pointee.start_time, timeBase: stream.pointee.time_base) : .zero
-                ),
-                nil
+            let cursor = try SampleCursor(
+                format: format,
+                track: self,
+                index: index,
+                atPresentationTimeStamp: stream.pointee.start_time != AV_NOPTS_VALUE
+                    ? CMTime(value: stream.pointee.start_time, timeBase: stream.pointee.time_base) : .zero
             )
+            sampleCursors.add(cursor)
+            return completionHandler(cursor, nil)
         } catch {
             logger.error(
                 "VideoTrackReader stream \(self.index) generateSampleCursor generateSampleCursorAtFirstSampleInDecodeOrder: \(error.localizedDescription, privacy: .public)"
@@ -455,10 +453,9 @@ class VideoTrackReader: TrackReader, METrackReader {
         }
         guard let format = format else { return completionHandler(nil, MEError(.internalFailure)) }
         do {
-            return completionHandler(
-                try SampleCursor(format: format, track: self, index: index, atPresentationTimeStamp: .positiveInfinity),
-                nil
-            )
+            let cursor = try SampleCursor(format: format, track: self, index: index, atPresentationTimeStamp: .positiveInfinity)
+            sampleCursors.add(cursor)
+            return completionHandler(cursor, nil)
         } catch {
             logger.error(
                 "VideoTrackReader stream \(self.index) generateSampleCursor generateSampleCursorAtLastSampleInDecodeOrder: \(error.localizedDescription, privacy: .public)"

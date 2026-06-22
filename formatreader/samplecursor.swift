@@ -91,6 +91,7 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
         self.discontinuity = false
         self.lastDelivered = copying.lastDelivered
         self.nextHandle = copying.nextHandle
+        track?.sampleCursors.add(self)
         if TRACE_SAMPLE_CURSOR { logger.debug("\(copying.debugDescription, privacy: .public) copy -> \(self.instance)") }
     }
 
