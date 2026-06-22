@@ -5,6 +5,7 @@
 //  Created by Jonathan Harris on 17/11/2025.
 //
 
+import Dispatch
 import Foundation
 import MediaExtension
 import OSLog

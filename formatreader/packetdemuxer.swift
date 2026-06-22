@@ -142,7 +142,7 @@ final class PacketDemuxer {
     private static let audioCapacity = videoCapacity * 3  // Audio buffers thrice video
     private static let videoReadAhead = 120  // 2 seconds of video at 60fps
     private static let audioReadAhead = 196  // should be more than enough for at least 2 seconds of audio in typical codecs
-    private let format: FormatReader
+    private weak var format: FormatReader?
     private var pktFixup: Int64 = 0
     private var snapshotTime = kDefaultSnapshotTime
     private var buffers: [PacketRing]
@@ -325,6 +325,11 @@ final class PacketDemuxer {
     }
 
     func seek(stream: Int, presentationTimeStamp: CMTime) throws -> PacketHandle {
+        guard let format = format else {
+            stop()
+            throw AVERROR(errorCode: AVERROR_EOF, context: "PacketDemuxer seek")
+        }
+
         // Special cases
         if presentationTimeStamp.isPositiveInfinity
             // Fix for QuickTime player which asks for a later SampleCursor after asking for one at +inf
@@ -369,7 +374,7 @@ final class PacketDemuxer {
         stateLock.lock()
         if let hit = buffers[stream].nearest(to: target) {
             stateLock.unlock()
-            if true {
+            if TRACE_PACKET_DEMUXER {
                 logger.debug("PacketDemuxer stream \(stream) seek \(target, privacy: .public) -> \(hit)")
             }
             return PacketHandle(generation: generation, index: hit, isLast: false)
@@ -477,15 +482,18 @@ final class PacketDemuxer {
         defer { demuxGroup.leave() }
         while true {
             stateLock.lock()
-            if stopping {
+            guard !stopping,
+                let fmt_ctx = format?.fmt_ctx
+            else {
                 stateLock.unlock()
                 break
-            } else if shouldPauseLocked() {
+            }
+            if shouldPauseLocked() {
                 stateLock.unlock()
                 demuxSem.wait()
             } else {
                 var pkt = av_packet_alloc()
-                let ret = av_read_frame(format.fmt_ctx, pkt)
+                let ret = av_read_frame(fmt_ctx, pkt)
                 if ret != 0 {
                     av_packet_free(&pkt)
                     halted = true
@@ -584,9 +592,7 @@ final class PacketDemuxer {
         defer { stateLock.unlock() }
         while true {
             stateLock.lock()
-            if stopping { return }
-            if halted { return }
-            if !buffers[stream].isEmpty { return }
+            if format == nil || stopping || halted || !buffers[stream].isEmpty { return }
             stateLock.unlock()
             packetSem.wait()
         }
@@ -594,7 +600,7 @@ final class PacketDemuxer {
 
     // MediaExtension will call us for the last packet for each stream; find this now so it doesn't mess up our demuxing
     private func findLastPackets() throws {
-        var ret = avformat_seek_file(format.fmt_ctx, -1, 0, Int64.max, Int64.max, 0)
+        var ret = avformat_seek_file(format!.fmt_ctx, -1, 0, Int64.max, Int64.max, 0)
         if ret < 0 {
             // Can't seek to end. Not fatal for now.
             let error = AVERROR(errorCode: ret, context: "avformat_seek_file(max)")
@@ -602,7 +608,7 @@ final class PacketDemuxer {
         } else {
             repeat {
                 var pkt = av_packet_alloc()
-                let ret = av_read_frame(format.fmt_ctx, pkt)
+                let ret = av_read_frame(format!.fmt_ctx, pkt)
                 if ret == AVERROR_EOF {
                     av_packet_free(&pkt)
                     break
@@ -622,8 +628,8 @@ final class PacketDemuxer {
             } while true
         }
         // Reset to start
-        ret = avformat_seek_file(format.fmt_ctx, -1, Int64.min, Int64.min, 0, 0)
-        avformat_flush(format.fmt_ctx)
+        ret = avformat_seek_file(format!.fmt_ctx, -1, Int64.min, Int64.min, 0, 0)
+        avformat_flush(format!.fmt_ctx)
         guard ret >= 0 else {
             throw AVERROR(errorCode: ret, context: "avformat_seek_file(min)")  // If we can't seek to start we can't demux
         }

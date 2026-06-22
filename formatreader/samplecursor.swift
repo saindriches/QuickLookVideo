@@ -42,13 +42,13 @@ import MediaExtension
 
 class SampleCursor: NSObject, MESampleCursor, NSCopying {
 
-    var format: FormatReader? = nil
-    var track: TrackReader? = nil
+    weak var format: FormatReader? = nil
+    weak var track: TrackReader? = nil
     var streamIndex = -1  // FFmpeg stream index
     var handle = PacketHandle(generation: 0, index: -1, isLast: false)
     var discontinuity: Bool = false
     var timeBase = AVRational()
-    var demuxer: PacketDemuxer { format!.demuxer! }
+    var demuxer: PacketDemuxer? { format?.demuxer! }
 
     // used by stepInDecodeOrderByCount
     var lastDelivered = 0
@@ -75,7 +75,7 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
         if format.demuxer == nil {
             format.demuxer = try PacketDemuxer(format: format)
         }
-        self.handle = try demuxer.seek(stream: streamIndex, presentationTimeStamp: presentationTimeStamp)
+        self.handle = try demuxer!.seek(stream: streamIndex, presentationTimeStamp: presentationTimeStamp)
         self.discontinuity = true  // SampleCursors are only initted (as opposed to copied) after a seek
     }
 
@@ -103,9 +103,9 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
     }
 
     override var debugDescription: String {
-        if let pkt = demuxer.get(stream: self.streamIndex, handle: self.handle) {
+        if let pkt = demuxer?.get(stream: self.streamIndex, handle: self.handle) {
             return
-                "SampleCursor \(self.instance) stream \(self.streamIndex) at idx:\(self.handle.index) dts:\(CMTime(value: pkt.pointee.dts, timeBase: self.timeBase)) pts:\(CMTime(value: pkt.pointee.pts, timeBase: self.timeBase))"
+                "SampleCursor \(self.instance) stream \(self.streamIndex) at idx:\(self.handle.index == Int.max ? "last" : String(self.handle.index)) dts:\(CMTime(value: pkt.pointee.dts, timeBase: self.timeBase)) pts:\(CMTime(value: pkt.pointee.pts, timeBase: self.timeBase))"
         } else {
             return "SampleCursor \(self.instance) stream \(self.streamIndex) at idx:\(self.handle.index) [no packet]"
         }
@@ -114,7 +114,7 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
     // MARK: pkt sample info
 
     var presentationTimeStamp: CMTime {
-        if let pkt = demuxer.get(stream: self.streamIndex, handle: self.handle) {
+        if let pkt = demuxer?.get(stream: self.streamIndex, handle: self.handle) {
             let time = CMTime(value: pkt.pointee.pts, timeBase: self.timeBase)  // docs suggest can be invalid for B frames
             if false {
                 logger.debug("\(self.debugDescription, privacy: .public) presentationTimeStamp = \(time, privacy: .public)")
@@ -127,7 +127,7 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
     }
 
     var decodeTimeStamp: CMTime {
-        if let pkt = demuxer.get(stream: self.streamIndex, handle: self.handle) {
+        if let pkt = demuxer?.get(stream: self.streamIndex, handle: self.handle) {
             let time = CMTime(value: pkt.pointee.dts, timeBase: self.timeBase)
             if false {
                 logger.debug("\(self.debugDescription, privacy: .public) decodeTimeStamp = \(time, privacy: .public)")
@@ -141,7 +141,7 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
 
     var currentSampleDuration: CMTime {
         // https://developer.apple.com/documentation/avfoundation/avsamplecursor/currentsampleduration
-        if let pkt = demuxer.get(stream: self.streamIndex, handle: self.handle) {
+        if let pkt = demuxer?.get(stream: self.streamIndex, handle: self.handle) {
             let time = CMTime(value: pkt.pointee.duration, timeBase: self.timeBase)
             if false {
                 logger.debug("\(self.debugDescription, privacy: .public) currentSampleDuration = \(time, privacy: .public)")
@@ -154,7 +154,7 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
     }
 
     var currentSampleFormatDescription: CMFormatDescription? {
-        if demuxer.get(stream: self.streamIndex, handle: self.handle) != nil {
+        if demuxer?.get(stream: self.streamIndex, handle: self.handle) != nil {
             if false {
                 logger.debug(
                     "\(self.debugDescription, privacy: .public) currentSampleFormatDescription = \(self.track!.formatDescription!.mediaSubType, privacy: .public)"
@@ -178,7 +178,7 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
         completionHandler: @escaping (CMSampleBuffer?, (any Error)?) -> Void
     ) {
         let endPresentationTimeStamp = endSampleCursor?.presentationTimeStamp ?? CMTime.indefinite
-        guard let pkt = demuxer.get(stream: streamIndex, handle: handle) else {
+        guard let pkt = demuxer?.get(stream: streamIndex, handle: handle) else {
             logger.error(
                 "\(self.debugDescription, privacy: .public) loadSampleBufferContainingSamples to \(endPresentationTimeStamp, privacy: .public)"
             )
@@ -279,7 +279,7 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
     // Step by number of frames (not by packets or timestamp)
     func stepInDecodeOrder(by stepCount: Int64, completionHandler: @escaping @Sendable (Int64, (any Error)?) -> Void) {
         var steppedBy: Int
-        if demuxer.get(stream: self.streamIndex, handle: handle) != nil {
+        if demuxer?.get(stream: self.streamIndex, handle: handle) != nil {
             if stepCount == lastDelivered, let next = nextHandle, next.generation == handle.generation {
                 // Being asked to step by the number of audio samples we last delivered in loadSampleBufferContainingSamples
                 if TRACE_SAMPLE_CURSOR {
@@ -294,10 +294,13 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
                     logger.debug("\(self.debugDescription, privacy: .public) stepInDecodeOrder by \(stepCount)")
                 }
                 let oldIndex = handle.index
-                handle = demuxer.step(stream: streamIndex, from: handle, by: Int(stepCount))
+                guard let newHandle = demuxer?.step(stream: streamIndex, from: handle, by: Int(stepCount)) else {
+                    return completionHandler(0, MEError(.endOfStream))
+                }
+                handle = newHandle
                 steppedBy = handle.index - oldIndex
             }
-            if demuxer.get(stream: self.streamIndex, handle: self.handle) != nil {
+            if demuxer?.get(stream: self.streamIndex, handle: self.handle) != nil {
                 return completionHandler(Int64(steppedBy), nil)
             } else {
                 // https://developer.apple.com/documentation/avfoundation/avsamplecursor/stepindecodeorder(bycount:)
@@ -317,8 +320,12 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
             logger.debug("\(self.debugDescription, privacy: .public) stepInPresentationOrder by \(stepCount)")
         }
         let oldlogicalIndex = handle.index
-        handle = demuxer.step(stream: streamIndex, from: handle, by: Int(stepCount))
-        if handle.index == -1 { return completionHandler(0, MEError(.endOfStream)) }
+        guard let newHandle = demuxer?.step(stream: streamIndex, from: handle, by: Int(stepCount)),
+            newHandle.index != -1
+        else {
+            return completionHandler(0, MEError(.endOfStream))
+        }
+        handle = newHandle
 
         // https://developer.apple.com/documentation/avfoundation/avsamplecursor/stepinpresentationorder(bycount:)
         // "If the cursor reaches the beginning or the end of the sample sequence before the requested number of samples was
@@ -330,7 +337,7 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
 
     func stepByDecodeTime(_ deltaDecodeTime: CMTime, completionHandler: @escaping @Sendable (CMTime, Bool, (any Error)?) -> Void)
     {
-        if let pkt = demuxer.get(stream: streamIndex, handle: handle) {
+        if let pkt = demuxer?.get(stream: streamIndex, handle: handle) {
             if !deltaDecodeTime.isNumeric || deltaDecodeTime.timescale != timeBase.den {
                 logger.error(
                     "\(self.debugDescription, privacy: .public) stepByDecodeTime by \(deltaDecodeTime, privacy: .public) invalid"
@@ -344,12 +351,16 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
                 )
             }
             do {
-                handle = try demuxer.seek(stream: streamIndex, decodeTimeStamp: decodeTimeStamp)
+                guard let newHandle = try demuxer?.seek(stream: streamIndex, decodeTimeStamp: decodeTimeStamp),
+                    let pkt = demuxer?.get(stream: self.streamIndex, handle: newHandle)!
+                else {
+                    return completionHandler(.invalid, false, MEError(.endOfStream))
+                }
+                handle = newHandle
+                return completionHandler(CMTime(value: pkt.pointee.dts, timeBase: self.timeBase), handle.isLast, nil)
             } catch {
                 return completionHandler(.invalid, false, error)
             }
-            let pkt = demuxer.get(stream: self.streamIndex, handle: self.handle)!
-            return completionHandler(CMTime(value: pkt.pointee.dts, timeBase: self.timeBase), handle.isLast, nil)
         } else {
             if TRACE_SAMPLE_CURSOR {
                 logger.error(
@@ -375,7 +386,7 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
     // MARK: GOP
 
     var syncInfo: AVSampleCursorSyncInfo {
-        if let pkt = demuxer.get(stream: self.streamIndex, handle: self.handle) {
+        if let pkt = demuxer?.get(stream: self.streamIndex, handle: self.handle) {
             let info = AVSampleCursorSyncInfo(
                 sampleIsFullSync: ObjCBool((pkt.pointee.flags & AV_PKT_FLAG_KEY) != 0),
                 sampleIsPartialSync: false,  // I don't know what this means
@@ -394,7 +405,7 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
     }
 
     var dependencyInfo: AVSampleCursorDependencyInfo {
-        if let pkt = demuxer.get(stream: self.streamIndex, handle: self.handle) {
+        if let pkt = demuxer?.get(stream: self.streamIndex, handle: self.handle) {
             let info = AVSampleCursorDependencyInfo(
                 sampleIndicatesWhetherItHasDependentSamples: false,
                 sampleHasDependentSamples: false,

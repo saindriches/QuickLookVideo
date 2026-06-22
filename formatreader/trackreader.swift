@@ -13,7 +13,7 @@ class TrackReader: NSObject {
 
     var index = -1
     var isEnabled: Bool = false
-    var format: FormatReader
+    weak var format: FormatReader?
     var stream: UnsafeMutablePointer<AVStream>
     var formatDescription: CMFormatDescription? = nil
     var dec_ctx: UnsafeMutablePointer<AVCodecContext>? = nil  // for decoding audio
@@ -30,9 +30,13 @@ class TrackReader: NSObject {
         }
     }
 
+    deinit {
+        logger.debug("TrackReader deinit for stream #\(self.index)")
+    }
+
     @objc
     func loadUneditedDuration(completionHandler: @escaping (CMTime, (any Error)?) -> Void) {
-        format.loadUneditedDurationCalled = true
+        format?.loadUneditedDurationCalled = true
         if stream.pointee.duration != 0 {
             if TRACE_SAMPLE_CURSOR {
                 logger.debug(

@@ -23,8 +23,8 @@ class DecodedSampleCursor: SampleCursor {
         completionHandler: @escaping (CMSampleBuffer?, (any Error)?) -> Void
     ) {
         guard let endSampleCursor = endSampleCursor as? SampleCursor,
-            let startPkt = demuxer.get(stream: streamIndex, handle: handle),
-            let endPkt = demuxer.get(stream: streamIndex, handle: endSampleCursor.handle)
+            let startPkt = demuxer?.get(stream: streamIndex, handle: handle),
+            let endPkt = demuxer?.get(stream: streamIndex, handle: endSampleCursor.handle)
         else {
             logger.error(
                 "\(self.debugDescription, privacy: .public) loadSampleBufferContainingSamples to \(endSampleCursor.debugDescription, privacy: .public)"
@@ -60,7 +60,7 @@ class DecodedSampleCursor: SampleCursor {
             // we only exect to be asked to provide data in the range of packets that we've previously reported as
             // existing, so treat any errors in retreiving and decoding as unexpected and unrecoverable
             nextHandle = PacketHandle(generation: handle.generation, index: idx, isLast: false)
-            guard let pkt = demuxer.get(stream: streamIndex, handle: nextHandle!) else {
+            guard let pkt = demuxer?.get(stream: streamIndex, handle: nextHandle!) else {
                 logger.error(
                     "DecodedSampleCursor \(self.instance) stream \(self.streamIndex) at idx:\(idx) [no packet] loadSampleBufferContainingSamples to \(endSampleCursor.debugDescription, privacy: .public)"
                 )
@@ -140,7 +140,7 @@ class DecodedSampleCursor: SampleCursor {
         nextHandle =
             endSampleCursor.handle.isLast
             ? nil
-            : demuxer.step(stream: streamIndex, from: endSampleCursor.handle, by: 1)
+            : demuxer?.step(stream: streamIndex, from: endSampleCursor.handle, by: 1)
 
         var blockBuffer: CMBlockBuffer? = nil
         var status = CMBlockBufferCreateWithMemoryBlock(

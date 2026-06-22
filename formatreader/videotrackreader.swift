@@ -110,6 +110,8 @@ class VideoTrackReader: TrackReader, METrackReader {
         //      VTIsHardwareDecodeSupported says that its supported on this computer and if we can construct the sample description
         //      atom that VideoToolkit requires for that codec, otherwise provide a fake fourcc and handle as for case 2.
 
+        guard let format = format else { return completionHandler(nil, MEError(.internalFailure)) }
+
         let params = stream.pointee.codecpar!
         guard params.pointee.codec_type == AVMEDIA_TYPE_VIDEO else {
             logger.error("Can't get stream parameters for stream #\(self.index)")
@@ -400,6 +402,7 @@ class VideoTrackReader: TrackReader, METrackReader {
                 "VideoTrackReader stream \(self.index) generateSampleCursor atPresentationTimeStamp \(presentationTimeStamp, privacy: .public)"
             )
         }
+        guard let format = format else { return completionHandler(nil, MEError(.internalFailure)) }
         do {
             return completionHandler(
                 try SampleCursor(
@@ -424,6 +427,7 @@ class VideoTrackReader: TrackReader, METrackReader {
         if TRACE_SAMPLE_CURSOR {
             logger.debug("VideoTrackReader stream \(self.index) generateSampleCursorAtFirstSampleInDecodeOrder")
         }
+        guard let format = format else { return completionHandler(nil, MEError(.internalFailure)) }
         do {
             return completionHandler(
                 try SampleCursor(
@@ -449,6 +453,7 @@ class VideoTrackReader: TrackReader, METrackReader {
         if TRACE_SAMPLE_CURSOR {
             logger.debug("VideoTrackReader stream \(self.index) generateSampleCursorAtLastSampleInDecodeOrder")
         }
+        guard let format = format else { return completionHandler(nil, MEError(.internalFailure)) }
         do {
             return completionHandler(
                 try SampleCursor(format: format, track: self, index: index, atPresentationTimeStamp: .positiveInfinity),
@@ -492,7 +497,7 @@ class VideoTrackReader: TrackReader, METrackReader {
         while packetsScanned < 50 && params.pointee.extradata_size == 0
             && (ret == 0 || ret == AVERROR_EAGAIN || ret == AVERROR_EOF)
         {
-            ret = av_read_frame(format.fmt_ctx, pkt)
+            ret = av_read_frame(format!.fmt_ctx, pkt)
             guard ret == 0 else { break }
             if pkt!.pointee.stream_index != Int32(index) {
                 av_packet_unref(pkt)
@@ -526,8 +531,8 @@ class VideoTrackReader: TrackReader, METrackReader {
         av_bsf_free(&ctx)
 
         // Rewind so demux will start at start
-        avformat_seek_file(format.fmt_ctx, -1, Int64.min, Int64.min, 0, 0)
-        avformat_flush(format.fmt_ctx)
+        avformat_seek_file(format!.fmt_ctx, -1, Int64.min, Int64.min, 0, 0)
+        avformat_flush(format!.fmt_ctx)
 
         if TRACE_PACKET_DEMUXER {
             if params.pointee.extradata_size > 0 {

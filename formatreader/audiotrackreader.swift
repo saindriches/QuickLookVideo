@@ -175,9 +175,6 @@ class AudioTrackReader: TrackReader, METrackReader {
     ]
 
     deinit {
-        if TRACE_SAMPLE_CURSOR {
-            logger.debug("AudioTrackReader deinit for stream #\(self.index)")
-        }
         if dec_ctx != nil { avcodec_free_context(&dec_ctx) }
         if swr_ctx != nil { swr_free(&swr_ctx) }
     }
@@ -430,6 +427,7 @@ class AudioTrackReader: TrackReader, METrackReader {
                 "AudioTrackReader stream \(self.index) generateSampleCursor atPresentationTimeStamp \(presentationTimeStamp, privacy: .public)"
             )
         }
+        guard let format = format else { return completionHandler(nil, MEError(.internalFailure)) }
         do {
             if dec_ctx != nil {
                 return completionHandler(
@@ -466,6 +464,7 @@ class AudioTrackReader: TrackReader, METrackReader {
         if TRACE_SAMPLE_CURSOR {
             logger.debug("AudioTrackReader stream \(self.index) generateSampleCursorAtFirstSampleInDecodeOrder")
         }
+        guard let format = format else { return completionHandler(nil, MEError(.internalFailure)) }
         do {
             if dec_ctx != nil {
                 return completionHandler(
@@ -504,6 +503,7 @@ class AudioTrackReader: TrackReader, METrackReader {
         if TRACE_SAMPLE_CURSOR {
             logger.debug("AudioTrackReader stream \(self.index) generateSampleCursorAtLastSampleInDecodeOrder")
         }
+        guard let format = format else { return completionHandler(nil, MEError(.internalFailure)) }
         do {
             if dec_ctx != nil {
                 return completionHandler(
