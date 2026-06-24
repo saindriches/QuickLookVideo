@@ -33,7 +33,7 @@ cat > "${SCHEMA}" <<HEADER
 HEADER
 
 for uti in $utis; do
-    cat >> "${SCHEMA}" <<UTI
+	cat >> "${SCHEMA}" <<UTI
 		<type name="$uti">
 			<allattrs>
 				kMDItemAlternateNames
@@ -60,7 +60,7 @@ for uti in $utis; do
 				kMDItemComment		<!-- appears hereabouts in public.audio -->
 				kMDItemGenre
 				kMDItemCopyright
-				kMDItemCodecs	<-- moved up -->
+				kMDItemCodecs	<!-- moved up -->
 				uk_org_marginal_qlvideo_framerate	<!-- added -->
 				kMDItemLanguages	<!-- added -->
 				kMDItemAudioChannelCount
@@ -73,7 +73,7 @@ for uti in $utis; do
 				kMDItemOriginalSource
 				kMDItemStarRating
 				kMDItemInformation
-                kMDItemDescription
+				kMDItemDescription
 			</displayattrs>
 		</type>
 UTI
