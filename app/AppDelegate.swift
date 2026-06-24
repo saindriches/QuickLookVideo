@@ -5,9 +5,11 @@
 //  Created by Jonathan Harris on 15/11/2022.
 //
 
+import AVFoundation
 import Cocoa
 import MediaToolbox
 import OSLog
+import QuickLookThumbnailing
 import Security
 import VideoToolbox
 
@@ -40,6 +42,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @IBOutlet var issueWindow: NSWindow!
     @IBOutlet var crashReportWindow: NSWindow!
     @IBOutlet var coverArtWindow: NSWindow!
+    @IBOutlet var mediaExtensionsWindow: NSWindow!
 
     var defaults: UserDefaults?
     var logger = Logger(subsystem: "uk.org.marginal.qlvideo", category: "app")
@@ -122,16 +125,49 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @IBAction func regenerateThumbnails(sender: NSButton) {
         defaults?.synchronize()
+        regenerateNote.isHidden = true
         if resetCache() {
+            do { try helper("/usr/bin/killall", args: ["AudiovisualThumbnailExtension"]) } catch {}
+            do { try helper("/usr/bin/killall", args: ["-kill", "-m", "QLVideo (Formats|Codecs)"]) } catch {}
             do {
                 try helper("/usr/bin/killall", args: ["Finder"])
             } catch {
                 // Managed to tell QuickLook to regenerate cache, but couldn't restart Finder - Sandboxed?
                 regenerateNote.isHidden = false
-                return
             }
         }
-        regenerateNote.isHidden = true
+
+        // No way to tell directly whether MediaExtensions are enabled.
+        // So check playability of a file that requires a formatreader.
+        guard let url = Bundle.main.url(forResource: "test-vp8-vorbis-webvtt", withExtension: "webm") else { return }
+        let asset = AVURLAsset(url: url)
+        Task {
+            do {
+                let playable = try await asset.load(.isPlayable)
+                if !playable {
+                    logger.error("Test file not playable: formatreader not available")
+                    mainWindow.beginSheet(mediaExtensionsWindow, completionHandler: nil)
+                    return
+                }
+            } catch {
+                logger.error("Test file not playable \(error.localizedDescription, privacy: .public)")
+                mainWindow.beginSheet(mediaExtensionsWindow, completionHandler: nil)
+                return
+            }
+            // Check whether thumbnailable, which requires videodecoder too
+            let request = QLThumbnailGenerator.Request(
+                fileAt: url,
+                size: CGSize(width: 128, height: 128),
+                scale: NSScreen.main?.backingScaleFactor ?? 2.0,
+                representationTypes: .thumbnail  // ask for thumbnail only, not icon or all
+            )
+            do {
+                _ = try await QLThumbnailGenerator.shared.generateBestRepresentation(for: request)
+            } catch {
+                logger.error("Test file not thumbnailable: \(error.localizedDescription, privacy: .public)")
+                mainWindow.beginSheet(mediaExtensionsWindow, completionHandler: nil)
+            }
+        }
     }
 
     @IBAction func showHelp(sender: NSMenuItem) {

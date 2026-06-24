@@ -20,6 +20,8 @@
 		AB01AAFC2ECC04D000A5CB77 /* libavutil.60.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA141C32D2EE49D0040A4E6 /* libavutil.60.dylib */; };
 		AB09EA0A2F7B272000E23C51 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AB09EA092F7B272000E23C51 /* Localizable.xcstrings */; };
 		AB34A76F2ECA3DBA0020E022 /* libdav1d.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA141EA2D2EF8CA0040A4E6 /* libdav1d.a */; };
+		AB3AD4E02FEEADDC0016453D /* test-vp8-vorbis-webvtt.webm in Resources */ = {isa = PBXBuildFile; fileRef = AB3AD4DF2FEEADDC0016453D /* test-vp8-vorbis-webvtt.webm */; };
+		AB3AD4E22FEEBF380016453D /* MediaExtensionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB3AD4E12FEEBF2B0016453D /* MediaExtensionsView.swift */; };
 		AB49FBA22923B5DD00B126C0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB49FB952923B5BB00B126C0 /* AppDelegate.swift */; };
 		AB49FBB92923CF1C00B126C0 /* QLVideo Metadata.mdimporter in Embed mdimporter */ = {isa = PBXBuildFile; fileRef = AB9FB56D1965DD7200D39647 /* QLVideo Metadata.mdimporter */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		AB70C90D2EF1C10500E30DCE /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB2ACD9D1A696F72002411DF /* AVFoundation.framework */; };
@@ -198,6 +200,8 @@
 		AB17CCF4291E954B002A80AB /* include */ = {isa = PBXFileReference; lastKnownFileType = text; name = include; path = universal/include; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB1DAC6D2F4D201C006BB899 /* mdimporter-bridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "mdimporter-bridge.h"; sourceTree = "<group>"; };
 		AB2ACD9D1A696F72002411DF /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		AB3AD4DF2FEEADDC0016453D /* test-vp8-vorbis-webvtt.webm */ = {isa = PBXFileReference; lastKnownFileType = file; path = "test-vp8-vorbis-webvtt.webm"; sourceTree = "<group>"; };
+		AB3AD4E12FEEBF2B0016453D /* MediaExtensionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExtensionsView.swift; sourceTree = "<group>"; };
 		AB49FB6F2922769F00B126C0 /* QuickLook Video.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "QuickLook Video.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB49FB7A292276A100B126C0 /* QuickLookVideo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = QuickLookVideo.entitlements; sourceTree = "<group>"; };
 		AB49FB952923B5BB00B126C0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -269,6 +273,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				Video_Decoder.provisionprofile,
 			);
 			target = AB0049852F2143CE0054D7B0 /* videodecoder */;
 		};
@@ -291,6 +296,7 @@
 		AB823D3B2ECB991F00F0E1D3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Format_Reader.provisionprofile,
 				Info.plist,
 			);
 			target = AB823D2E2ECB991F00F0E1D3 /* formatreader */;
@@ -376,12 +382,14 @@
 				ABE72EB72938E008005433DF /* IssueView.swift */,
 				ABA532352F5216B200E6EC43 /* CrashReportView.swift */,
 				ABA141FE2D3016480040A4E6 /* CoverArtView.swift */,
+				AB3AD4E12FEEBF2B0016453D /* MediaExtensionsView.swift */,
 				ABE72EB42937FAE4005433DF /* Main.xib */,
 				ABD12FB42F5895BA00F69ECA /* app-bridge.h */,
 				ABB719E62924069600F13C24 /* Assets.xcassets */,
 				AB9846DC196B790F00AF6349 /* Info.plist */,
 				AB09EA092F7B272000E23C51 /* Localizable.xcstrings */,
 				AB49FB7A292276A100B126C0 /* QuickLookVideo.entitlements */,
+				AB3AD4DF2FEEADDC0016453D /* test-vp8-vorbis-webvtt.webm */,
 			);
 			path = app;
 			sourceTree = "<group>";
@@ -738,6 +746,7 @@
 			files = (
 				ABB719E72924069600F13C24 /* Assets.xcassets in Resources */,
 				ABE72EB22937FAE4005433DF /* Main.xib in Resources */,
+				AB3AD4E02FEEADDC0016453D /* test-vp8-vorbis-webvtt.webm in Resources */,
 				AB09EA0A2F7B272000E23C51 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -824,6 +833,7 @@
 				ABA141FF2D3016480040A4E6 /* CoverArtView.swift in Sources */,
 				ABE72EB82938E008005433DF /* IssueView.swift in Sources */,
 				AB49FBA22923B5DD00B126C0 /* AppDelegate.swift in Sources */,
+				AB3AD4E22FEEBF380016453D /* MediaExtensionsView.swift in Sources */,
 				ABA532362F5216B200E6EC43 /* CrashReportView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1240,6 +1250,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;

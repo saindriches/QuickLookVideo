@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="24765" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="24765"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -20,6 +19,7 @@
                 <outlet property="crashReportWindow" destination="CrH-ur-CRW" id="nVh-hv-6fo"/>
                 <outlet property="issueWindow" destination="Gye-Xd-78R" id="7cO-cg-aw0"/>
                 <outlet property="mainWindow" destination="F0z-JX-Cv5" id="RVg-cO-eDi"/>
+                <outlet property="mediaExtensionsWindow" destination="gSU-ON-XKs" id="toU-a3-VUN"/>
                 <outlet property="regenerateNote" destination="sv1-Bp-axZ" id="0YR-1j-FPp"/>
                 <outlet property="reindexingNote" destination="ha4-53-wyh" id="JJY-iA-orc"/>
                 <outlet property="reportIssue" destination="vHb-9r-BgU" id="jxS-BY-tMG"/>
@@ -151,7 +151,7 @@
                         <items>
                             <menuItem title="Hide QuickLook Video" keyEquivalent="h" id="Olw-nP-bQN">
                                 <attributedString key="userComments">
-                                    <fragment content="Standard macOS menu entry"/>
+                                    <fragment content="Standard macOS menu entry. Don't translate 'QuickLook Video'."/>
                                 </attributedString>
                                 <connections>
                                     <action selector="hide:" target="-1" id="ZiX-sv-q4f"/>
@@ -169,7 +169,7 @@
                             <menuItem isSeparatorItem="YES" id="NXt-7W-lXD"/>
                             <menuItem title="Quit QuickLook Video" keyEquivalent="q" id="4sb-4s-VLi">
                                 <attributedString key="userComments">
-                                    <fragment content="Standard macOS menu entry"/>
+                                    <fragment content="Standard macOS menu entry. Don't translate 'QuickLook Video'."/>
                                 </attributedString>
                                 <connections>
                                     <action selector="terminate:" target="-1" id="H6w-7P-2TU"/>
@@ -234,7 +234,7 @@
                         <items>
                             <menuItem title="QuickLook Video Help" keyEquivalent="?" id="FKE-Sm-Kum">
                                 <attributedString key="userComments">
-                                    <fragment content="Standard macOS menu entry"/>
+                                    <fragment content="Standard macOS menu entry. Don't translate 'QuickLook Video'."/>
                                 </attributedString>
                                 <connections>
                                     <action selector="showHelpWithSender:" target="jrs-wu-C8P" id="CCM-EQ-TTn"/>
@@ -259,7 +259,6 @@
             <point key="canvasLocation" x="-278" y="-498"/>
         </menu>
         <window title="Report an Issue" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="Gye-Xd-78R">
-            <windowStyleMask key="styleMask" titled="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="283" y="305" width="400" height="270"/>
             <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1409"/>
@@ -299,7 +298,7 @@
                         <rect key="frame" x="111" y="198" width="271" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" lineBreakMode="clipping" alignment="left" title="Drop a problematic video file here" id="eA4-FA-7dc">
-                            <font key="font" metaFont="system"/>
+                            <font key="font" metaFont="systemBold"/>
                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
@@ -521,7 +520,6 @@ Leave empty to remove existing cover art.</string>
             <point key="canvasLocation" x="257" y="273"/>
         </window>
         <window title="Crash reports found" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="CrH-ur-CRW" userLabel="Crash Reports Found">
-            <windowStyleMask key="styleMask" titled="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="283" y="305" width="400" height="243"/>
             <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1409"/>
@@ -542,8 +540,8 @@ Leave empty to remove existing cover art.</string>
                     <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="B16-bx-P61">
                         <rect key="frame" x="102" y="163" width="280" height="50"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <textFieldCell key="cell" allowsUndo="NO" sendsActionOnEndEditing="YES" title="There are some recent crash reports for this app's plugins " id="OoJ-wE-2Cu">
-                            <font key="font" usesAppearanceFont="YES"/>
+                        <textFieldCell key="cell" allowsUndo="NO" sendsActionOnEndEditing="YES" title="There are some recent crash reports for this app's plugins" id="OoJ-wE-2Cu">
+                            <font key="font" metaFont="systemBold"/>
                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
@@ -621,6 +619,111 @@ Leave empty to remove existing cover art.</string>
                 <fragment content="Crash reports dialog: Window title"/>
             </attributedString>
             <point key="canvasLocation" x="-278" y="586.5"/>
+        </window>
+        <window title="Media Extensions" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="gSU-ON-XKs" userLabel="Media Extensions">
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="283" y="305" width="400" height="265"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1409"/>
+            <view key="contentView" id="KNP-Gm-M3d" customClass="MediaExtensionsView" customModule="QuickLook_Video" customModuleProvider="target">
+                <rect key="frame" x="0.0" y="0.0" width="400" height="265"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="82P-fU-xhy">
+                        <rect key="frame" x="20" y="185" width="64" height="64"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <imageCell key="cell" refusesFirstResponder="YES" alignment="left" animates="YES" imageScaling="proportionallyUpOrDown" image="NSCaution" id="Emc-Lc-cDo"/>
+                    </imageView>
+                    <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" id="XHp-Pd-CdY">
+                        <rect key="frame" x="52" y="185" width="32" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <imageCell key="cell" refusesFirstResponder="YES" alignment="left" animates="YES" imageScaling="proportionallyUpOrDown" image="NSApplicationIcon" id="Y0c-Tn-Hch"/>
+                    </imageView>
+                    <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sPh-b8-fvn">
+                        <rect key="frame" x="18" y="161" width="364" height="16"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <textFieldCell key="cell" allowsUndo="NO" sendsActionOnEndEditing="YES" title="This app supplies two Media Extensions:" id="mjK-8S-fFu">
+                            <font key="font" usesAppearanceFont="YES"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                        <attributedString key="userComments">
+                            <fragment content="Media Extensions dialog"/>
+                        </attributedString>
+                    </textField>
+                    <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="YuF-i4-tYH">
+                        <rect key="frame" x="18" y="129" width="364" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <textFieldCell key="cell" allowsUndo="NO" sendsActionOnEndEditing="YES" id="fre-0N-z4z">
+                            <font key="font" usesAppearanceFont="YES"/>
+                            <string key="title"> • QLVideo media formats
+ • QLVideo video decoders</string>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                        <attributedString key="userComments">
+                            <fragment content="do not translate"/>
+                        </attributedString>
+                    </textField>
+                    <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tRl-he-Hr7">
+                        <rect key="frame" x="18" y="56" width="364" height="64"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <textFieldCell key="cell" allowsUndo="NO" sendsActionOnEndEditing="YES" id="VUB-ff-SOl">
+                            <font key="font" usesAppearanceFont="YES"/>
+                            <string key="title">These need to be enabled in System Settings.
+Press Refresh again after you have enabled these Media Extensions.</string>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                        <attributedString key="userComments">
+                            <fragment content="Media Extensions dialog"/>
+                        </attributedString>
+                    </textField>
+                    <button hidden="YES" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="I2v-Te-EXQ">
+                        <rect key="frame" x="316" y="10" width="64" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                        <buttonCell key="cell" type="push" title="OK" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="2Wu-PA-J9n">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <attributedString key="userComments">
+                            <fragment content="Media Extensions dialog"/>
+                        </attributedString>
+                        <connections>
+                            <action selector="okWithSender:" target="KNP-Gm-M3d" id="d46-Ix-cLF"/>
+                        </connections>
+                    </button>
+                    <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="yGJ-kV-WxW">
+                        <rect key="frame" x="102" y="209" width="280" height="16"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <textFieldCell key="cell" allowsUndo="NO" sendsActionOnEndEditing="YES" title="Enable Media Extensions" id="Yjf-ud-aWR">
+                            <font key="font" metaFont="systemBold"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                        <attributedString key="userComments">
+                            <fragment content="Media Extensions dialog"/>
+                        </attributedString>
+                    </textField>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ZIp-Ts-ger">
+                        <rect key="frame" x="128" y="10" width="252" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                        <buttonCell key="cell" type="push" title="Open System Settings" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Dt7-zg-Pc2">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <attributedString key="userComments">
+                            <fragment content="Media Extensions dialog: Button"/>
+                        </attributedString>
+                        <connections>
+                            <action selector="openPrefsWithSender:" target="KNP-Gm-M3d" id="DhC-g0-8cl"/>
+                        </connections>
+                    </button>
+                </subviews>
+            </view>
+            <attributedString key="userComments">
+                <fragment content="Media Extensions dialog: Window title"/>
+            </attributedString>
+            <point key="canvasLocation" x="-278" y="954.5"/>
         </window>
     </objects>
     <resources>

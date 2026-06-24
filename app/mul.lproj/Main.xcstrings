@@ -1,8 +1,122 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "2Wu-PA-J9n.title" : {
+      "comment" : "Class = \"NSButtonCell\"; title = \"OK\"; ObjectID = \"2Wu-PA-J9n\"; Note = \"Media Extensions dialog\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ΟΚ"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "OK"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "확인"
+          }
+        },
+        "nb-NO" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ОК"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "好"
+          }
+        }
+      }
+    },
     "4sb-4s-VLi.title" : {
-      "comment" : "Class = \"NSMenuItem\"; title = \"Quit QuickLook Video\"; ObjectID = \"4sb-4s-VLi\"; Note = \"Standard macOS menu entry\";",
+      "comment" : "Class = \"NSMenuItem\"; title = \"Quit QuickLook Video\"; ObjectID = \"4sb-4s-VLi\"; Note = \"Standard macOS menu entry. Don't translate 'QuickLook Video'.\";",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -1629,6 +1743,114 @@
         }
       }
     },
+    "Dt7-zg-Pc2.title" : {
+      "comment" : "Class = \"NSButtonCell\"; title = \"Open System Settings\"; ObjectID = \"Dt7-zg-Pc2\"; Note = \"Media Extensions dialog: Button\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obre la configuració del sistema"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Systemeinstellungen öffnen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Άνοιγμα των Ρυθμίσεων συστήματος"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Open System Settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Ajustes del Sistema"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir Réglages Système"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rendszerbeállítások megnyitása"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apri Impostazioni di Sistema"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システム設定を開く"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시스템 설정 열기"
+          }
+        },
+        "nb-NO" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Åpne Systeminnstillinger"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open de systeeminstellingen"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Ajustes do Sistema"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Definições do Sistema"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть Системные настройки"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öppna Systeminställningar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开系统设置"
+          }
+        }
+      }
+    },
     "DVo-aG-piG.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Close\"; ObjectID = \"DVo-aG-piG\"; Note = \"Standard macOS menu entry\";",
       "localizations" : {
@@ -1958,7 +2180,7 @@
       }
     },
     "FKE-Sm-Kum.title" : {
-      "comment" : "Class = \"NSMenuItem\"; title = \"QuickLook Video Help\"; ObjectID = \"FKE-Sm-Kum\"; Note = \"Standard macOS menu entry\";",
+      "comment" : "Class = \"NSMenuItem\"; title = \"QuickLook Video Help\"; ObjectID = \"FKE-Sm-Kum\"; Note = \"Standard macOS menu entry. Don't translate 'QuickLook Video'.\";",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -2069,6 +2291,19 @@
           }
         }
       }
+    },
+    "fre-0N-z4z.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \" • QLVideo media formats\\n • QLVideo video decoders\"; ObjectID = \"fre-0N-z4z\"; Note = \"do not translate\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : " • QLVideo media formats\n • QLVideo video decoders"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "Fud-2w-ffl.title" : {
       "comment" : "Class = \"NSMenu\"; title = \"QuickLook Video\"; ObjectID = \"Fud-2w-ffl\"; Note = \"do not translate\";",
@@ -2193,6 +2428,114 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "快照"
+          }
+        }
+      }
+    },
+    "gSU-ON-XKs.title" : {
+      "comment" : "Class = \"NSWindow\"; title = \"Media Extensions\"; ObjectID = \"gSU-ON-XKs\"; Note = \"Media Extensions dialog: Window title\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extensions multimèdia"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medienerweiterungen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Επεκτάσεις πολυμέσων"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media Extensions"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extensiones de contenido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extensions multimédias"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Médiabővítmények"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estensioni Multimediali"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メディア機能拡張"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "미디어 확장 기능"
+          }
+        },
+        "nb-NO" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medieutvidelser"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Media-extensies"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extensões de Mídia"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extensões de multimédia"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Медиарасширения"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medietillägg"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒体扩展"
           }
         }
       }
@@ -2638,6 +2981,84 @@
         }
       }
     },
+    "mjK-8S-fFu.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"This app supplies two Media Extensions:\"; ObjectID = \"mjK-8S-fFu\"; Note = \"Media Extensions dialog\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese App bietet zwei Medienerweiterungen:"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "This app supplies two Media Extensions:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta aplicación proporciona dos extensiones de contenido:"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette application fournit deux extensions multimédias:"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa applicazione fornisce due estensioni multimediali:"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 앱은 두 가지 미디어 확장 기능을 제공합니다:"
+          }
+        },
+        "nb-NO" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denne appen forsyner to medieutvidelser:"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze app biedt twee media-extensies:"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este aplicativo fornece duas extensões de mídia:"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este aplicativo fornece duas extensões de multimédia:"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это приложение предоставляет два медиарасширения:"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appen levererar två mediatillägg:"
+          }
+        }
+      }
+    },
     "N0n-6K-3kI.title" : {
       "comment" : "Class = \"NSButtonCell\"; title = \"Report\"; ObjectID = \"N0n-6K-3kI\"; Note = \"Generating a bug report: Submission button\";",
       "localizations" : {
@@ -2752,7 +3173,7 @@
       }
     },
     "Olw-nP-bQN.title" : {
-      "comment" : "Class = \"NSMenuItem\"; title = \"Hide QuickLook Video\"; ObjectID = \"Olw-nP-bQN\"; Note = \"Standard macOS menu entry\";",
+      "comment" : "Class = \"NSMenuItem\"; title = \"Hide QuickLook Video\"; ObjectID = \"Olw-nP-bQN\"; Note = \"Standard macOS menu entry. Don't translate 'QuickLook Video'.\";",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -2865,7 +3286,7 @@
       }
     },
     "OoJ-wE-2Cu.title" : {
-      "comment" : "Class = \"NSTextFieldCell\"; title = \"There are some recent crash reports for this app's plugins \"; ObjectID = \"OoJ-wE-2Cu\"; Note = \"Crash reports dialog\";",
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"There are some recent crash reports for this app's plugins\"; ObjectID = \"OoJ-wE-2Cu\"; Note = \"Crash reports dialog\";",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -2882,7 +3303,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "There are some recent crash reports for this app's plugins "
+            "value" : "There are some recent crash reports for this app's plugins"
           }
         },
         "es" : {
@@ -3798,6 +4219,84 @@
         }
       }
     },
+    "VUB-ff-SOl.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"These need to be enabled in System Settings.\\nPress Refresh again after you have enabled these Media Extensions.\"; ObjectID = \"VUB-ff-SOl\"; Note = \"Media Extensions dialog\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese müssen in den Systemeinstellungen aktiviert werden.\nDrücken Sie auf Aktualisieren, nachdem Sie diese Medienerweiterungen aktiviert haben."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "These need to be enabled in System Settings.\nPress Refresh again after you have enabled these Media Extensions."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estas necesitan estar habilitadas en Ajustes del Sistema.\nPresione Actualizar de nuevo después de que haya habilitado estas extensiones de medios."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Celles-ci doivent être activées dans les Réglages Système.\nAppuyez sur Actualiser à nouveau après avoir activé ces extensions multimédias."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questi devono essere abilitati in Impostazioni di Sistema.\nPremi di nuovo Aggiorna dopo aver abilitato queste estensioni multimediali."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 기능은 시스템 설정에서 활성화해야 합니다. 미디어 확장 기능을 활성화한 후 새로 고침을 누르십시오."
+          }
+        },
+        "nb-NO" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disse må være aktivert i systeminnstillingene.\nTrykk Oppdater igjen når du har aktivert disse Media Extensionene."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze moeten ingeschakeld worden in systeeminstellingen.\nDruk nogmaals op Vernieuwen nadat u deze media-extensies heeft ingeschakeld."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estes itens precisam ser ativados em Ajustes do Sistema.\nPressione Atualizar novamente após ativar essas Extensões de Mídia."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estes itens precisam ser ativados nas Definições do Sistema.\nPressione Atualizar novamente após ativar essas Extensões de multimédia."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Они должны быть включены в настройках системы.\nНажмите кнопку Обновить, после того как вы включили эти медиарасширения."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dessa måste aktiveras i Systeminställningar.\nTryck på Uppdatera igen efter att du har aktiverat dessa medietillägg."
+          }
+        }
+      }
+    },
     "wBi-TN-rGU.title" : {
       "comment" : "Class = \"NSTextFieldCell\"; title = \"You may experience high CPU and disk usage for the next few minutes while Spotlight re-indexes all of your “non-native” audio and video files.\"; ObjectID = \"wBi-TN-rGU\"; Note = \"Advice\";",
       "localizations" : {
@@ -4222,6 +4721,84 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "专辑封面"
+          }
+        }
+      }
+    },
+    "Yjf-ud-aWR.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"Enable Media Extensions\"; ObjectID = \"Yjf-ud-aWR\"; Note = \"Media Extensions dialog\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medienerweiterungen aktivieren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Enable Media Extensions"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Habilitar extensiones de contenido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer les extensions multimédias"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abilita estensioni multimediali"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "미디어 확장 기능 활성"
+          }
+        },
+        "nb-NO" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktiver medieutvidelser"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Media-extensies inschakelen"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ativar extensões de mídia"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ativar extensões de multimédia"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить медиарасширения"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktivera mediatillägg"
           }
         }
       }
