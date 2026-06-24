@@ -290,13 +290,18 @@ class AudioTrackReader: TrackReader, METrackReader {
             logger.error("AudioTrackReader stream \(self.index) loadTrackInfo: unhandled custom channel layout")
         } else if params.ch_layout.order == AV_CHANNEL_ORDER_UNSPEC {
             // AVFoundation won't play with unknown layout, so make some assumptions
+            logger.warning("AudioTrackReader stream \(self.index) loadTrackInfo: unspecified channel layout")
             switch params.ch_layout.nb_channels {
             case 1:
                 layoutTag = kAudioChannelLayoutTag_Mono
             case 2:
                 layoutTag = kAudioChannelLayoutTag_Stereo
+            case 6:
+                layoutTag = kAudioChannelLayoutTag_MPEG_5_1_A
+            case 8:
+                layoutTag = kAudioChannelLayoutTag_MPEG_7_1_A
             default:
-                logger.error("AudioTrackReader stream \(self.index) loadTrackInfo: unspecified channel layout")
+                logger.error("AudioTrackReader stream \(self.index) loadTrackInfo: can't guess layout for \(params.ch_layout.nb_channels) channels")
             }
         }
 
