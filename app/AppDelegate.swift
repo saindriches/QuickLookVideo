@@ -6,8 +6,10 @@
 //
 
 import Cocoa
+import MediaToolbox
 import OSLog
 import Security
+import VideoToolbox
 
 // Settings
 let kSettingsLastSpotlight = "LastSpotlight"  // Last version ran - for upgrade check
@@ -62,6 +64,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         copyrightNote.stringValue = myBundle.infoDictionary!["NSHumanReadableCopyright"] as! String
         regenerateNote.isHidden = true
         reindexingNote.isHidden = true
+
+        // Allow loading of MediExtensions for Issue View
+        MTRegisterProfessionalVideoWorkflowFormatReaders()
+        VTRegisterProfessionalVideoWorkflowVideoDecoders()
 
         // Set up help
         if isSandboxed {
