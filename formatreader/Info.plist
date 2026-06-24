@@ -41,9 +41,12 @@
 			<string>webm</string>
 			<string>avi</string>
 			<string>vfw</string>
+			<string>dv</string>
+			<string>vob</string>
 			<string>asf</string>
 			<string>wma</string>
 			<string>wmv</string>
+			<string>wtv</string>
 			<string>gxf</string>
 			<string>mxf</string>
 			<string>nuv</string>
@@ -52,13 +55,16 @@
 			<string>ram</string>
 			<string>rm</string>
 			<string>rv</string>
-			<string>wtv</string>
+			<string>rmvb</string>
 			<string>flc</string>
 			<string>flv</string>
 			<string>f4v</string>
 			<string>ogm</string>
 			<string>ogv</string>
 			<string>ivf</string>
+			<string>xesc</string>
+			<string>ape</string>
+			<string>mlp</string>
 		</array>
 		<key>MTUTTypeArray</key>
 		<array>
@@ -79,9 +85,20 @@
 			<string>com.firecore.fileformat.avi</string>
 			<string>io.iina.avi</string>
 
+			<string>public.dv-movie</string>
+			<string>com.firecore.fileformat.dvdmedia</string>
+			<string>io.iina.dv</string>
+			<string>io.mpv.dv</string>
+
+			<string>jp.co.dvdfllc.vob</string>
+			<string>com.firecore.fileformat.vob</string>
+			<string>io.iina.vob</string>
+			<string>org.videolan.vob</string>
+
 			<string>com.microsoft.advanced-systems-format</string>
 			<string>com.firecore.fileformat.asf</string>
 			<string>io.iina.asf</string>
+			<string>org.videolan.asf</string>
 
 			<string>com.microsoft.windows-media-wma</string>
 			<string>io.iina.wma</string>
@@ -89,6 +106,7 @@
 			<string>com.microsoft.windows-media-wmv</string>
 			<string>com.firecore.fileformat.wmv</string>
 			<string>io.iina.wmv</string>
+			<string>org.videolan.wmv</string>
 
 			<string>com.microsoft.wtv</string>
 			<string>com.firecore.fileformat.wtv</string>
@@ -108,6 +126,7 @@
 			<string>com.real.realaudio</string>
 
 			<string>com.real.realmedia</string>
+			<string>com.real.realmedia-vbr</string>
 			<string>io.iina.realmedia</string>
 
 			<string>public.flc-animation</string>
@@ -123,6 +142,17 @@
 			<string>io.iina.ogg-video</string>
 
 			<string>public.ivf</string>
+
+			<string>com.microsoft.xesc</string>
+			<string>org.videolan.xesc</string>
+
+			<string>com.monkeysaudio.ape</string>
+			<string>io.iina.ape</string>
+			<string>org.videolan.ape</string>
+
+			<string>com.meridian-audio.mlp</string>
+			<string>org.videolan.mlp</string>
+
 		</array>
 		<key>ObjectName</key>
 		<string>Support for non-native media formats</string>
@@ -133,6 +163,12 @@
 	<string>${INFOPLIST_KEY_NSHumanReadableCopyright}</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
+		<!--
+		  https://developer.apple.com/documentation/mediaextension/format-reader-property-list-dictionaries
+		  says that exported types should conform to com.apple.mediaextension-content but if we do that
+		  these types are imported by the CoreMedia importer (which doesn't understand them) instead of our
+		  mdimporter. Seems to work OK without.
+		  -->
 		<dict>
 			<key>UTTypeConformsTo</key>
 			<array>
@@ -207,23 +243,44 @@
 			<key>UTTypeConformsTo</key>
 			<array>
 				<string>public.movie</string>
+				<string>public.mpeg</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>General eXchange Format</string>
+			<string>Video Object</string>
 			<key>UTTypeIdentifier</key>
-			<string>org.smpte.gxf</string>
+			<string>jp.co.dvdfllc.vob</string>
 			<key>UTTypeReferenceURL</key>
-			<string>https://www.smpte.org/standards</string>
+			<string>http://www.dvdfllc.co.jp/</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
 				<array>
-					<string>gxf</string>
+					<string>vob</string>
 				</array>
 				<key>public.mime-type</key>
 				<array>
-					<string>application/gxf</string>
-					<string>video/x-gxf</string>
+					<string>video/dvd</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.movie</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Windows Recorded TV Show</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.microsoft.wtv</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>wtv</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>video/x-wtv</string>
 				</array>
 			</dict>
 		</dict>
@@ -281,27 +338,6 @@
 				<string>public.movie</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Windows Recorded TV Show</string>
-			<key>UTTypeIdentifier</key>
-			<string>com.microsoft.wtv</string>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>wtv</string>
-				</array>
-				<key>public.mime-type</key>
-				<array>
-					<string>video/x-wtv</string>
-				</array>
-			</dict>
-		</dict>
-		<dict>
-			<key>UTTypeConformsTo</key>
-			<array>
-				<string>public.movie</string>
-			</array>
-			<key>UTTypeDescription</key>
 			<string>Ogg Video</string>
 			<key>UTTypeIdentifier</key>
 			<string>org.xiph.ogv</string>
@@ -318,6 +354,94 @@
 				<array>
 					<string>video/ogg</string>
 					<string>video/x-ogg</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.movie</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Duck IVF</string>
+			<key>UTTypeIdentifier</key>
+			<string>public.ivf</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>ivf</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>video/x-ivf</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.audio</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Monkey&apos;s Audio</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.monkeysaudio.ape</string>
+			<key>UTTypeReferenceURL</key>
+			<string>http://www.monkeysaudio.com/developers.html</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>ape</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>audio/x-ape</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.movie</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Expression Encoder Screen Capture File</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.microsoft.xesc</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>xesc</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>video/x-xesc</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.audio</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Meridian Lossless Packing Audio File</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.meridian-audio.mlp</string>
+			<key>UTTypeReferenceURL</key>
+			<string>http://www.meridian-audio.com/</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>mlp</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>audio/x-mlp</string>
 				</array>
 			</dict>
 		</dict>
