@@ -482,17 +482,23 @@ final class PacketDemuxer {
         defer { demuxGroup.leave() }
         while true {
             stateLock.lock()
-            guard !stopping,
-                let fmt_ctx = format?.fmt_ctx
-            else {
+            guard !stopping else {
                 stateLock.unlock()
                 break
             }
             if shouldPauseLocked() {
                 stateLock.unlock()
                 demuxSem.wait()
-            } else {
-                var pkt = av_packet_alloc()
+                continue
+            }
+            guard let format, let fmt_ctx = format.fmt_ctx else {
+                stateLock.unlock()
+                break
+            }
+            var pkt = av_packet_alloc()
+            // Keep FormatReader alive while FFmpeg may invoke AVIO callbacks using its opaque pointer, and
+            // until stateLock is released so FormatReader.deinit cannot re-enter demuxer.stop() while locked.
+            withExtendedLifetime(format) {
                 let ret = av_read_frame(fmt_ctx, pkt)
                 if ret != 0 {
                     av_packet_free(&pkt)
@@ -505,7 +511,7 @@ final class PacketDemuxer {
                         logger.error("PacketDemuxer demuxLoop: \(error.localizedDescription, privacy:.public)")
                     }
                     demuxSem.signal()
-                    continue
+                    return
                 }
                 if pkt!.pointee.size == 0 || Int(pkt!.pointee.stream_index) >= buffers.count
                     || buffers[Int(pkt!.pointee.stream_index)].capacity == 0
