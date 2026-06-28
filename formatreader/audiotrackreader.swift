@@ -218,7 +218,7 @@ class AudioTrackReader: TrackReader, METrackReader {
             if ret < 0 {
                 let err = AVERROR(errorCode: ret, context: "avcodec_parameters_to_context")
                 logger.error(
-                    "AudioTrackReader stream \(self.index) loadTrackInfo: Can't set decoder parameters for codec \(String(cString:avcodec_get_name(params.codec_id)), privacy: .public): \(err.localizedDescription, privacy: .public)"
+                    "AudioTrackReader stream \(self.index) loadTrackInfo: Can't set decoder parameters for codec \(String(cString:avcodec_get_name(params.codec_id)), privacy: .public): \(err.errorDescription, privacy: .public)"
                 )
                 return completionHandler(nil, err)
             }
@@ -226,7 +226,7 @@ class AudioTrackReader: TrackReader, METrackReader {
             if ret < 0 {
                 let err = AVERROR(errorCode: ret, context: "avcodec_open2")
                 logger.error(
-                    "AudioTrackReader stream \(self.index) loadTrackInfo: Can't open codec \(String(cString:avcodec_get_name(params.codec_id)), privacy: .public): \(err.localizedDescription, privacy: .public)"
+                    "AudioTrackReader stream \(self.index) loadTrackInfo: Can't open codec \(String(cString:avcodec_get_name(params.codec_id)), privacy: .public): \(err.errorDescription, privacy: .public)"
                 )
                 return completionHandler(nil, err)
             }
@@ -248,7 +248,7 @@ class AudioTrackReader: TrackReader, METrackReader {
                 if ret < 0 {
                     let err = AVERROR(errorCode: ret, context: "swr_alloc_set_opts2")
                     logger.error(
-                        "AudioTrackReader stream \(self.index) loadTrackInfo: Can't create resample context for format \(String(cString:av_get_sample_fmt_name(AVSampleFormat(rawValue: params.format))), privacy: .public): \(err.localizedDescription, privacy: .public)"
+                        "AudioTrackReader stream \(self.index) loadTrackInfo: Can't create resample context for format \(String(cString:av_get_sample_fmt_name(AVSampleFormat(rawValue: params.format))), privacy: .public): \(err.errorDescription, privacy: .public)"
                     )
                     return completionHandler(nil, err)
                 }
@@ -256,7 +256,7 @@ class AudioTrackReader: TrackReader, METrackReader {
                 if ret < 0 {
                     let err = AVERROR(errorCode: ret, context: "swr_init")
                     logger.error(
-                        "AudioTrackReader stream \(self.index) loadTrackInfo: Can't initialise resample context for format \(String(cString:av_get_sample_fmt_name(AVSampleFormat(rawValue: params.format))), privacy: .public): \(err.localizedDescription, privacy: .public)"
+                        "AudioTrackReader stream \(self.index) loadTrackInfo: Can't initialise resample context for format \(String(cString:av_get_sample_fmt_name(AVSampleFormat(rawValue: params.format))), privacy: .public): \(err.errorDescription, privacy: .public)"
                     )
                     return completionHandler(nil, err)
                 }
@@ -452,7 +452,7 @@ class AudioTrackReader: TrackReader, METrackReader {
             return completionHandler(cursor, nil)
         } catch {
             logger.error(
-                "AudioTrackReader stream \(self.index) generateSampleCursor atPresentationTimeStamp \(presentationTimeStamp, privacy: .public): \(error.localizedDescription, privacy: .public)"
+                "AudioTrackReader stream \(self.index) generateSampleCursor atPresentationTimeStamp \(presentationTimeStamp, privacy: .public): \(error, privacy: .public)"
             )
             return completionHandler(nil, error)
         }
@@ -486,7 +486,7 @@ class AudioTrackReader: TrackReader, METrackReader {
             return completionHandler(cursor, nil)
         } catch {
             logger.error(
-                "AudioTrackReader stream \(self.index) generateSampleCursor generateSampleCursorAtFirstSampleInDecodeOrder: \(error.localizedDescription, privacy: .public)"
+                "AudioTrackReader stream \(self.index) generateSampleCursor generateSampleCursorAtFirstSampleInDecodeOrder: \(error, privacy: .public)"
             )
             return completionHandler(nil, error)
         }
@@ -518,7 +518,7 @@ class AudioTrackReader: TrackReader, METrackReader {
             return completionHandler(cursor, nil)
         } catch {
             logger.error(
-                "AudioTrackReader stream \(self.index) generateSampleCursor generateSampleCursorAtLastSampleInDecodeOrder: \(error.localizedDescription, privacy: .public)"
+                "AudioTrackReader stream \(self.index) generateSampleCursor generateSampleCursorAtLastSampleInDecodeOrder: \(error, privacy: .public)"
             )
             return completionHandler(nil, error)
         }

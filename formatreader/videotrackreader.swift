@@ -414,7 +414,7 @@ class VideoTrackReader: TrackReader, METrackReader {
             return completionHandler(cursor, nil)
         } catch {
             logger.error(
-                "VideoTrackReader stream \(self.index) generateSampleCursor atPresentationTimeStamp \(presentationTimeStamp, privacy: .public): \(error.localizedDescription, privacy: .public)"
+                "VideoTrackReader stream \(self.index) generateSampleCursor atPresentationTimeStamp \(presentationTimeStamp, privacy: .public): \(error, privacy: .public)"
             )
             return completionHandler(nil, error)
         }
@@ -439,7 +439,7 @@ class VideoTrackReader: TrackReader, METrackReader {
             return completionHandler(cursor, nil)
         } catch {
             logger.error(
-                "VideoTrackReader stream \(self.index) generateSampleCursor generateSampleCursorAtFirstSampleInDecodeOrder: \(error.localizedDescription, privacy: .public)"
+                "VideoTrackReader stream \(self.index) generateSampleCursor generateSampleCursorAtFirstSampleInDecodeOrder: \(error, privacy: .public)"
             )
             return completionHandler(nil, error)
         }
@@ -458,7 +458,7 @@ class VideoTrackReader: TrackReader, METrackReader {
             return completionHandler(cursor, nil)
         } catch {
             logger.error(
-                "VideoTrackReader stream \(self.index) generateSampleCursor generateSampleCursorAtLastSampleInDecodeOrder: \(error.localizedDescription, privacy: .public)"
+                "VideoTrackReader stream \(self.index) generateSampleCursor generateSampleCursorAtLastSampleInDecodeOrder: \(error, privacy: .public)"
             )
             return completionHandler(nil, error)
         }

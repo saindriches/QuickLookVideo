@@ -207,7 +207,7 @@ final class PacketDemuxer {
                     } else {
                         let error = AVERROR(errorCode: ret, context: "av_bsf_init")
                         logger.error(
-                            "PacketDemuxer init: Unable to set up mpeg4_unpack_bframes for stream \(idx): \(error.localizedDescription, privacy:.public)"
+                            "PacketDemuxer init: Unable to set up mpeg4_unpack_bframes for stream \(idx): \(error.errorDescription, privacy:.public)"
                         )
                         av_bsf_free(&ctx)
                     }
@@ -406,7 +406,7 @@ final class PacketDemuxer {
         if ret < 0 {
             let error = AVERROR(errorCode: ret, context: "avformat_seek_file")
             logger.error(
-                "PacketDemuxer seek stream \(stream) time \(target, privacy: .public): \(error.localizedDescription, privacy:.public)"
+                "PacketDemuxer seek stream \(stream) time \(target, privacy: .public): \(error.errorDescription, privacy:.public)"
             )
             stateLock.unlock()
             throw error
@@ -508,7 +508,7 @@ final class PacketDemuxer {
                         if TRACE_PACKET_DEMUXER { logger.debug("PacketDemuxer demuxLoop reached EOF") }
                     } else {
                         let error = AVERROR(errorCode: ret, context: "av_read_frame")
-                        logger.error("PacketDemuxer demuxLoop: \(error.localizedDescription, privacy:.public)")
+                        logger.error("PacketDemuxer demuxLoop: \(error.errorDescription, privacy:.public)")
                     }
                     demuxSem.signal()
                     return
@@ -610,7 +610,7 @@ final class PacketDemuxer {
         if ret < 0 {
             // Can't seek to end. Not fatal for now.
             let error = AVERROR(errorCode: ret, context: "avformat_seek_file(max)")
-            logger.error("PacketDemuxer init: Failed to get last packets \(error.localizedDescription, privacy: .public)")
+            logger.error("PacketDemuxer init: Failed to get last packets \(error.errorDescription, privacy: .public)")
         } else {
             repeat {
                 var pkt = av_packet_alloc()
@@ -621,7 +621,7 @@ final class PacketDemuxer {
                 } else if ret != 0 {
                     av_packet_free(&pkt)
                     let error = AVERROR(errorCode: ret, context: "av_read_frame")
-                    logger.error("PacketDemuxer init: Failed to get last packets \(error.localizedDescription, privacy: .public)")
+                    logger.error("PacketDemuxer init: Failed to get last packets \(error.errorDescription, privacy: .public)")
                     break
                 } else if pkt!.pointee.stream_index >= buffers.count {
                     logger.warning("PacketDemuxer init: Packet with invalid stream \(pkt!.pointee.stream_index)")
@@ -647,7 +647,7 @@ final class PacketDemuxer {
         if ret < 0 {
             if TRACE_PACKET_DEMUXER {
                 let err = AVERROR(errorCode: ret, context: "av_bsf_send_packet")
-                logger.error("PacketDemuxer bsf send stream \(stream): \(err.localizedDescription, privacy:.public)")
+                logger.error("PacketDemuxer bsf send stream \(stream): \(err.errorDescription, privacy:.public)")
             }
             return nil
         }
@@ -661,7 +661,7 @@ final class PacketDemuxer {
                 av_packet_free(&outPkt)
                 if TRACE_PACKET_DEMUXER && ret != AVERROR_EOF && ret != AVERROR_EAGAIN {
                     let err = AVERROR(errorCode: ret, context: "av_bsf_receive_packet")
-                    logger.error("PacketDemuxer bsf recv stream \(stream): \(err.localizedDescription, privacy:.public)")
+                    logger.error("PacketDemuxer bsf recv stream \(stream): \(err.errorDescription, privacy:.public)")
                 }
                 break
             }
