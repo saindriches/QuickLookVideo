@@ -43,10 +43,10 @@ public func GetMetadataForFile(
     guard ret == 0 else {
         let err = AVERROR(errorCode: ret, context: "avformat_open_input", file: filename)
         #if DEBUG
-            logger.error("mdimporter can't open \(filename, privacy:.public): \(err.localizedDescription, privacy:.public)")
+            logger.error("mdimporter can't open \(filename, privacy:.public): \(err.errorDescription, privacy:.public)")
         #else
             logger.error(
-                "mdimporter can't open \(filename, privacy:.private(mask:.hash)): \(err.localizedDescription, privacy:.public)"
+                "mdimporter can't open \(filename, privacy:.private(mask:.hash)): \(err.errorDescription, privacy:.public)"
             )
         #endif
         return false
@@ -57,11 +57,11 @@ public func GetMetadataForFile(
         let err = AVERROR(errorCode: ret, context: "avformat_find_stream_info", file: filename)
         #if DEBUG
             logger.error(
-                "mdimporter can't read stream info from \(filename, privacy:.public): \(err.localizedDescription, privacy:.public)"
+                "mdimporter can't read stream info from \(filename, privacy:.public): \(err.errorDescription, privacy:.public)"
             )
         #else
             logger.error(
-                "mdimporter can't read stream info from \(filename, privacy:.private(mask:.hash)): \(err.localizedDescription, privacy:.public)"
+                "mdimporter can't read stream info from \(filename, privacy:.private(mask:.hash)): \(err.errorDescription, privacy:.public)"
             )
         #endif
         return false

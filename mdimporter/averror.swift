@@ -31,7 +31,7 @@ let AVERROR_INPUT_CHANGED: Int32 = -0x636e_6701
 let AVERROR_OUTPUT_CHANGED: Int32 = -0x636e_6702
 let AVERROR_EAGAIN: Int32 = -EAGAIN
 
-final class AVERROR: CustomNSError, LocalizedError {
+final class AVERROR: CustomNSError {
 
     static var errorDomain: String { return "uk.org.marginal.qlvideo" }
     let errorCode: Int
@@ -52,7 +52,7 @@ final class AVERROR: CustomNSError, LocalizedError {
         self.errorUserInfo = userInfo
     }
 
-    var errorDescription: String? {
+    var errorDescription: String {
         if let context = errorUserInfo[NSLocalizedFailureErrorKey] {
             return "\(context): \(errorUserInfo[NSLocalizedFailureReasonErrorKey]!)"
         } else {
@@ -60,7 +60,7 @@ final class AVERROR: CustomNSError, LocalizedError {
         }
     }
 
-    var failureReason: String? {
-        return errorUserInfo[NSLocalizedFailureReasonErrorKey]
+    var failureReason: String {
+        return errorUserInfo[NSLocalizedFailureReasonErrorKey]!
     }
 }
