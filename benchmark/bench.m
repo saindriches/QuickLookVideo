@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
             for (int i = 0; i < image_count; i++)
             {
                 NSInteger time = image_count > 1 ? (duration * (i + 1)) / (image_count + 1) : (duration < 2 * kSnapshotTime ? duration/2 : kSnapshotTime);
-#if 0   // Generate PNG from CGImageRef
+#if 1   // Generate PNG from CGImageRef
                 CGImageRef snapshot = [snapshotter newSnapshotWithSize:size atTime:time];
                 if (!snapshot)
                 {

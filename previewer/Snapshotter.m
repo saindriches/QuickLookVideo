@@ -8,6 +8,9 @@
 
 #import "Snapshotter.h"
 
+#import "Accelerate/Accelerate.h"
+
+#include <libavutil/pixdesc.h>
 #include <libswscale/swscale.h>
 #include <string.h>
 
@@ -134,6 +137,10 @@ void segv_handler(int signum) {
                              ((int)stream->nb_frames > 0)
                          ? (int)stream->nb_frames
                          : 0);
+        // Hack! DXV encodes width as a multiple of 16 for some reason even though the underlying data blocks are 4x4
+        if (stream->codecpar->codec_id == AV_CODEC_ID_DXV) {
+            dec_ctx->coded_width = (dec_ctx->coded_width + 15) & -16;
+        }
     } else {
         // Get best stream (for metadata) even though we can't view it
         video_stream_idx = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
@@ -410,17 +417,25 @@ void segv_handler(int signum) {
             // convert raw frame data, and rescale if necessary
             struct SwsContext *sws_ctx;
             if (!(sws_ctx = sws_getContext(dec_ctx->width, dec_ctx->height, dec_ctx->pix_fmt, size.width, size.height,
-                                           AV_PIX_FMT_RGB24, SWS_BICUBIC, NULL, NULL, NULL)))
+                                           AV_PIX_FMT_BGRA, SWS_BICUBIC | SWS_FULL_CHR_H_INT, NULL, NULL, NULL)))
                 break; // Failed to convert
 
             sws_scale(sws_ctx, (const uint8_t *const *)frame->data, frame->linesize, 0, dec_ctx->height, dst, dstStride);
             sws_freeContext(sws_ctx);
             avcodec_flush_buffers(dec_ctx); // Discard any buffered packets
+
+            // Premultiply alpha since that's what the display pipeline expects
+            const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(frame->format);
+            if (desc && ((desc->flags & AV_PIX_FMT_FLAG_ALPHA) != 0) && frame->alpha_mode != AVALPHA_MODE_PREMULTIPLIED) {
+                vImage_Buffer buf = {dst[0], size.height, size.width, dstStride[0]};
+                vImagePremultiplyData_BGRA8888(&buf, &buf, 0);
+            }
+
             av_frame_free(&frame);
             av_packet_free(&pkt);
             return 0;
-        } else // not a video packet
-        {
+        } else {
+            // not a video packet
             av_packet_unref(pkt);
         }
     } while (1);
@@ -455,7 +470,7 @@ void segv_handler(int signum) {
     }
 
     // video frames or pre-computed pictures presented as a stream
-    int linesize = ((3 * (int)size.width + 15) / 16) * 16; // align for efficient swscale
+    int linesize = ((4 * (int)size.width + 15) / 16) * 16; // align for efficient swscale
     if (!(picture = malloc(linesize * (int)size.height)))
         return nil;
 
@@ -492,67 +507,13 @@ void segv_handler(int signum) {
     CFDataRef data = CFDataCreateWithBytesNoCopy(NULL, picture, linesize * (int)size.height, kCFAllocatorMalloc);
     CGDataProviderRef provider = CGDataProviderCreateWithCFData(data);
     CGColorSpaceRef rgb = CGColorSpaceCreateDeviceRGB();
-    CGImageRef image = CGImageCreate(size.width, size.height, 8, 24, linesize, rgb, kCGBitmapByteOrderDefault, provider, NULL,
-                                     false, kCGRenderingIntentDefault);
+    CGImageRef image =
+        CGImageCreate(size.width, size.height, 8, 32, linesize, rgb, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little,
+                      provider, NULL, false, kCGRenderingIntentDefault);
     CGColorSpaceRelease(rgb);
     CGDataProviderRelease(provider);
     CFRelease(data); // frees the RGB data in "picture" too
     return image;
-}
-
-// Gets snapshot and blocks until completion, timeout or failure.
-- (CFDataRef)newPNGWithSize:(CGSize)size atTime:(NSInteger)seconds;
-{
-    // single pre-computed picture that ffmpeg doesn't understand or present as a stream
-    if (_pictures && picture_size) {
-        uint8_t *picture = NULL; // points to the RGB data
-        AVIOContext *pb = fmt_ctx->pb;
-        if (avio_seek(pb, picture_off, SEEK_SET) < 0 || !(picture = malloc(picture_size)))
-            return nil;
-        if (avio_read(pb, picture, picture_size) != picture_size) {
-            free(picture);
-            return nil;
-        }
-        return CFDataCreateWithBytesNoCopy(NULL, picture, picture_size, kCFAllocatorMalloc);
-    }
-
-    // Allocate temporary frame for decoded RGB data
-    AVFrame *rgb_frame = av_frame_alloc();
-    if (!rgb_frame)
-        return nil;
-    rgb_frame->format = AV_PIX_FMT_RGB24;
-    rgb_frame->width = (int)size.width;
-    rgb_frame->height = (int)size.height;
-    if (av_frame_get_buffer(rgb_frame, 32))
-        return nil;
-
-    if ([self newImageWithSize:size atTime:seconds to:rgb_frame->data withStride:rgb_frame->linesize]) {
-        av_frame_free(&rgb_frame);
-        return nil;
-    }
-
-    if (!enc_ctx || enc_ctx->width != (int)size.width || enc_ctx->height != (int)size.height) {
-        const AVCodec *codec = avcodec_find_encoder(AV_CODEC_ID_PNG);
-        enc_ctx = avcodec_alloc_context3(codec);
-        enc_ctx->pix_fmt = AV_PIX_FMT_RGB24;
-        enc_ctx->width = (int)size.width;
-        enc_ctx->height = (int)size.height;
-        enc_ctx->time_base.num = enc_ctx->time_base.den = 1; // meaningless for PNG but can't be zero
-        enc_ctx->compression_level = 1;                      // Z_BEST_SPEED = ~20% larger ~25% quicker than default
-        if (avcodec_open2(enc_ctx, codec, NULL))
-            return nil;
-    }
-
-    AVPacket *pkt;
-    if (!(pkt = av_packet_alloc()))
-        return nil;
-
-    CFDataRef data = nil;
-    if (!avcodec_send_frame(enc_ctx, rgb_frame) && !avcodec_receive_packet(enc_ctx, pkt)) {
-        data = CFDataCreateWithBytesNoCopy(NULL, pkt->data, pkt->size, kCFAllocatorMalloc);
-    }
-    av_frame_free(&rgb_frame);
-    return data;
 }
 
 @end
