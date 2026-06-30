@@ -98,8 +98,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if sysCtl("hw.machine") == "x86_64" && sysCtl("hw.optional.avx2_0") != "yes" {
             let alert = NSAlert()
             alert.alertStyle = .critical
-            alert.messageText = "QuickLook Video requires a late-2013 Mac or newer, with AVX2 support"
-            alert.informativeText = "The QuickLook and Spotlight plugins will crash!"
+            alert.messageText = String(localized: "QuickLook Video requires a late-2013 Mac or newer, with AVX2 and VideoToolbox support", comment: "Error message in app")
+            alert.informativeText = String.localizedStringWithFormat(String(localized: "Please use release %@ of QuickLook Video", comment: "Advice in app"), "1.x")
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+
+        // If we don't have base-level VideoToolbox support (e.g. under emulation) then our videodecoder won't get loaded,
+        // so nothing will work
+        if !VTIsHardwareDecodeSupported(kCMVideoCodecType_HEVC) {
+            let alert = NSAlert()
+            alert.alertStyle = .critical
+            alert.messageText = String(localized: "QuickLook Video 3.x requires GPU support for VideoToolbox, which isn't available on this machine", comment: "Error message in app")
+            alert.informativeText = String.localizedStringWithFormat(String(localized: "Please use release %@ of QuickLook Video", comment: "Advice in app"), "2.x")
             alert.addButton(withTitle: "OK")
             alert.runModal()
             return

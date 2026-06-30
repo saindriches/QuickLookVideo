@@ -629,6 +629,183 @@
         }
       }
     },
+    "Please use release %@ of QuickLook Video" : {
+      "comment" : "Advice in app",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitte nutzen Sie die Version %@ von QuickLook Video"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por favor usa el lanzamiento %@ de QuickLook Video"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veuillez utiliser la version %@ de QuickLook Video"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si prega di utilizzare la versione %@ di QuickLook Video"
+          }
+        },
+        "nb-NO" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vennligst bruk utgivelsen %@ av QuickLook Video"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gebruik release %@ van QuickLook Video"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por favor, use o lançamento %@ do QuickLook Video"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por favor, use o lançamento %@ do QuickLook Video"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Använd release %@ av QuickLook Video"
+          }
+        }
+      }
+    },
+    "QuickLook Video 3.x requires GPU support for VideoToolbox, which isn't available on this machine" : {
+      "comment" : "Error message in app",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video 3.x benötigt GPU-Unterstützung für VideoToolbox, die auf dieser Maschine nicht verfügbar ist"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video 3.x requiere soporte GPU para VideoToolbox, que no está disponible en esta máquina"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video 3.x nécessite le support GPU de VideoToolbox, qui n'est pas disponible sur cette machine"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video 3.x richiede il supporto GPU per VideoToolbox, che non è disponibile su questa macchina"
+          }
+        },
+        "nb-NO" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video 3.x krever GPU-støtte for VideoToolbox, som ikke er tilgjengelig på denne maskinen"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video 3.x vereist GPU ondersteuning voor VideoToolbox, die niet beschikbaar is op deze machine"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video 3.x requer suporte à GPU para VideoToolbox, que não está disponível nesta máquina"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video 3.x requer suporte à GPU para VideoToolbox, que não está disponível nesta máquina"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video 3.x kräver GPU-stöd för VideoToolbox, som inte finns på denna maskin"
+          }
+        }
+      }
+    },
+    "QuickLook Video requires a late-2013 Mac or newer, with AVX2 and VideoToolbox support" : {
+      "comment" : "Error message in app",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video benötigt Ende 2013 Mac oder neuer, mit AVX2 und VideoToolbox"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video requiere un Mac o posterior tardío-2013, con soporte para AVX2 y VideoToolbox"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video nécessite un Mac ou une version plus récente de 2013, avec la prise en charge AVX2 et VideoToolbox"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video richiede un Mac tardo-2013 o più recente, con supporto AVX2 e VideoToolbox"
+          }
+        },
+        "nb-NO" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video krever en siste 2013 Mac eller nyere, med støtte for AVX2 og VideoToolbox"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video vereist een Mac of nieuwer in 2013 met AVX2 en VideoToolbox ondersteuning"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video requer um Mac ou mais tarde/2013, com suporte para AVX2 e VideoToolbox"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video requer um Mac ou mais tarde/2013, com suporte para AVX2 e VideoToolbox"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video kräver en sen-2013 Mac eller nyare, med AVX2 och VideoToolbox stöd"
+          }
+        }
+      }
+    },
     "Remove" : {
       "comment" : "Submit button in cover art dialog",
       "localizations" : {
