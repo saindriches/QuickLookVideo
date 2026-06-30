@@ -76,13 +76,13 @@
             "value" : "Voeg toe"
           }
         },
-        "pt-PT" : {
+        "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adicionar"
           }
         },
-        "pt-BR" : {
+        "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adicionar"
@@ -153,13 +153,13 @@
             "value" : "Hoesafbeeldingen toevoegen"
           }
         },
-        "pt-PT" : {
+        "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adicionar capa"
           }
         },
-        "pt-BR" : {
+        "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adicionar capa"
@@ -230,16 +230,16 @@
             "value" : "Sleep het bestand hier naartoe om de hoesafbeeldingen te gebruiken.\nLaat leeg om bestaande hoesafbeeldingen te verwijderen."
           }
         },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Largue aqui o ficheiro a usar como capa.\nDeixe em branco para remover a capa existente."
-          }
-        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Arraste aqui o arquivo para usar como capa.\nDeixe vazio para remover a capa existente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Largue aqui o ficheiro a usar como capa.\nDeixe em branco para remover a capa existente."
           }
         },
         "ru" : {
@@ -313,16 +313,16 @@
             "value" : "Plaats videobestand hier"
           }
         },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Largar ficheiro de vídeo aqui"
-          }
-        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Arraste arquivo de vídeo aqui"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Largar ficheiro de vídeo aqui"
           }
         },
         "ru" : {
@@ -390,13 +390,13 @@
             "value" : "Bestandstype ondersteunt geen cover art"
           }
         },
-        "pt-PT" : {
+        "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tipo de arquivo não suporta a arte da capa"
           }
         },
-        "pt-BR" : {
+        "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tipo de arquivo não suporta a arte da capa"
@@ -461,13 +461,13 @@
             "value" : "Geen JPEG of PNG bestand"
           }
         },
-        "pt-PT" : {
+        "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Não é um arquivo JPEG ou PNG"
           }
         },
-        "pt-BR" : {
+        "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Não é um arquivo JPEG ou PNG"
@@ -532,13 +532,13 @@
             "value" : "Geen video bestand"
           }
         },
-        "pt-PT" : {
+        "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Não é um arquivo de vídeo"
           }
         },
-        "pt-BR" : {
+        "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Não é um arquivo de vídeo"
@@ -603,13 +603,13 @@
             "value" : "Geen afbeelding bestand"
           }
         },
-        "pt-PT" : {
+        "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Não é um arquivo de imagem"
           }
         },
-        "pt-BR" : {
+        "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Não é um arquivo de imagem"
@@ -704,13 +704,13 @@
             "value" : "Verwijder"
           }
         },
-        "pt-PT" : {
+        "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remover"
           }
         },
-        "pt-BR" : {
+        "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remover"
@@ -781,13 +781,13 @@
             "value" : "Verwijder albumhoes"
           }
         },
-        "pt-PT" : {
+        "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remover capa"
           }
         },
-        "pt-BR" : {
+        "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remover capa"
@@ -882,13 +882,13 @@
             "value" : "Vervang"
           }
         },
-        "pt-PT" : {
+        "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Substituir"
           }
         },
-        "pt-BR" : {
+        "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Substituir"
@@ -959,13 +959,13 @@
             "value" : "Albumhoes vervangen"
           }
         },
-        "pt-PT" : {
+        "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Substituir capa"
           }
         },
-        "pt-BR" : {
+        "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Substituir capa"

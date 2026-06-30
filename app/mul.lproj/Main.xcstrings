@@ -3291,13 +3291,13 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Existují nějaké nedávné zprávy o chybách pro pluginy této aplikace "
+            "value" : "Existují nějaké nedávné zprávy o chybách pro pluginy této aplikace"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Es gibt kürzlich Absturzberichte für die Plugins dieser App "
+            "value" : "Es gibt kürzlich Absturzberichte für die Plugins dieser App"
           }
         },
         "en" : {
@@ -3309,49 +3309,49 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hay algunos informes recientes de fallos para los plugins de esta aplicación "
+            "value" : "Hay algunos informes recientes de fallos para los plugins de esta aplicación"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Il y a quelques rapports de plantage récents pour les plugins de cette application "
+            "value" : "Il y a quelques rapports de plantage récents pour les plugins de cette application"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ci sono alcune segnalazioni di crash recenti per i plugin di questa app "
+            "value" : "Ci sono alcune segnalazioni di crash recenti per i plugin di questa app"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이 앱의 플러그인에 대한 최근 충돌 보고가 몇 건 있습니다 "
+            "value" : "이 앱의 플러그인에 대한 최근 충돌 보고가 몇 건 있습니다"
           }
         },
         "nb-NO" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Det finnes noen nylige krasjrapporter for denne appens plugins "
+            "value" : "Det finnes noen nylige krasjrapporter for denne appens plugins"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Er zijn enkele recente crashrapporten voor deze app plugins "
+            "value" : "Er zijn enkele recente crashrapporten voor deze app plugins"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Há alguns relatórios de travamento recentes para os plugins deste aplicativo "
+            "value" : "Há alguns relatórios de travamento recentes para os plugins deste aplicativo"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Há alguns relatórios de travamento recentes para os plugins deste aplicativo "
+            "value" : "Há alguns relatórios de travamento recentes para os plugins deste aplicativo"
           }
         },
         "ru" : {
@@ -3363,13 +3363,13 @@
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Det finns några senaste kraschrapporter för denna app plugins "
+            "value" : "Det finns några senaste kraschrapporter för denna app plugins"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此应用插件最近有一些崩溃报告 "
+            "value" : "此应用插件最近有一些崩溃报告"
           }
         }
       }
@@ -4792,7 +4792,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Включить медиарасширения"
+            "value" : "Включите медиарасширения"
           }
         },
         "sv" : {
