@@ -281,8 +281,8 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             throw MEError(.unsupportedFeature)
         }
 
-        // Reconstruct QuickTime palette from VerbatimSampleDescription when available.
-        if dec_ctx!.pointee.pix_fmt == AV_PIX_FMT_PAL8 {
+        // Reconstruct QuickTime palette from VerbatimSampleDescription when available (but not for FLIC where the palette is in-stream).
+        if dec_ctx!.pointee.pix_fmt == AV_PIX_FMT_PAL8 && params.pointee.codec_id != AV_CODEC_ID_FLIC {
             qtPalette = VideoDecoder.makeQuickTimePalette(
                 formatDescription: formatDescription,
                 codecID: params.pointee.codec_id
