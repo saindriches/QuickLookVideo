@@ -53,7 +53,6 @@ int main(int argc, char *argv[])
             for (int i = 0; i < image_count; i++)
             {
                 NSInteger time = image_count > 1 ? (duration * (i + 1)) / (image_count + 1) : (duration < 2 * kSnapshotTime ? duration/2 : kSnapshotTime);
-#if 1   // Generate PNG from CGImageRef
                 CGImageRef snapshot = [snapshotter newSnapshotWithSize:size atTime:time];
                 if (!snapshot)
                 {
@@ -71,15 +70,6 @@ int main(int argc, char *argv[])
                 CFRelease(destination);
                 CFRelease(png);
                 CGImageRelease(snapshot);
-#else   // Generate PNG directly
-                CFDataRef png = [snapshotter newPNGWithSize:size atTime:time];
-                if (!png)
-                {
-                    printf("Can't generate PNG #%d at time %lds\n", i, (long) time);
-                    exit(1);
-                }
-                CFRelease(png);
-#endif
             }
         }
 
