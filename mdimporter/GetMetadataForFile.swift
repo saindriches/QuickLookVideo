@@ -15,6 +15,61 @@ let logger = Logger(subsystem: "uk.org.marginal.qlvideo", category: "mdimporter"
 private let kFrameRate = "uk_org_marginal_qlvideo_framerate" as CFString
 private let kSubtitles = "uk_org_marginal_qlvideo_subtitles" as CFString
 
+// Some of AVCodec.long_name can be too wordy (see libavcodec/codec_desc.c) but .name too cryptic,
+// so special-case some common codecs to give more compact & Applesque names
+private let codecNames: [AVCodecID: String] = [
+    // audio
+    AV_CODEC_ID_AAC: "MPEG-4 AAC",  // CoreMedia.mdimporter uses "MPEG-4 AAC"
+    AV_CODEC_ID_AC3: "Dolby Digital",
+    AV_CODEC_ID_ALAC: "Apple Lossless",
+    AV_CODEC_ID_ATRAC1: "ATRAC1",
+    AV_CODEC_ID_COOK: "RealAudio G2",
+    AV_CODEC_ID_DTS: "DTS",
+    AV_CODEC_ID_EAC3: "Dolby Digital Plus",
+    AV_CODEC_ID_FLAC: "FLAC",
+    AV_CODEC_ID_MP2: "MPEG Layer 2",
+    AV_CODEC_ID_MP3: "MPEG Layer 3",
+    AV_CODEC_ID_RA_144: "RealAudio 1.0",
+    AV_CODEC_ID_RA_288: "RealAudio 2.0",
+    AV_CODEC_ID_SIPR: "RealAudio SIPR",
+    // video
+    AV_CODEC_ID_AV1: "AV1",
+    AV_CODEC_ID_CAVS: "CAVS",
+    AV_CODEC_ID_CLEARVIDEO: "ClearVideo",
+    AV_CODEC_ID_FLIC: "FLIC",
+    AV_CODEC_ID_FLV1: "Sorenson Spark",
+    AV_CODEC_ID_H263: "H.263",
+    AV_CODEC_ID_H263P: "H.263+",
+    AV_CODEC_ID_H264: "H.264",
+    AV_CODEC_ID_HEVC: "HEVC",  // CoreMedia.mdimporter uses "HEVC"
+    AV_CODEC_ID_INDEO4: "Intel Indeo 4",
+    AV_CODEC_ID_INDEO5: "Intel Indeo 5",
+    AV_CODEC_ID_MPEG1VIDEO: "MPEG-1",
+    AV_CODEC_ID_MPEG2VIDEO: "MPEG-2",
+    AV_CODEC_ID_MPEG4: "MPEG-4 Video",  // CoreMedia.mdimporter uses "MPEG-4 Video"
+    AV_CODEC_ID_MSMPEG4V1: "MPEG-4 Video [MSv1]",
+    AV_CODEC_ID_MSMPEG4V2: "MPEG-4 Video [MSv2]",
+    AV_CODEC_ID_MSMPEG4V3: "MPEG-4 Video [MSv3]",
+    AV_CODEC_ID_QTRLE: "QuickTime Animation",
+    AV_CODEC_ID_RPZA: "QuickTime Video",
+    AV_CODEC_ID_SVQ1: "Sorenson Video",
+    AV_CODEC_ID_SVQ3: "Sorenson Video 3",  // CoreMedia.mdimporter uses "Sorenson Video 3"
+    AV_CODEC_ID_VC1: "VC-1",
+    AV_CODEC_ID_VP6: "VP6",
+    AV_CODEC_ID_VP6A: "VP6",
+    AV_CODEC_ID_VP6F: "VP6",
+    AV_CODEC_ID_VP8: "VP8",
+    AV_CODEC_ID_VP9: "VP9",
+    AV_CODEC_ID_VVC: "H.266",
+    // subtitles
+    AV_CODEC_ID_ASS: "Advanced SSA subtitle",
+    AV_CODEC_ID_HDMV_PGS_SUBTITLE: "PGS subtitle",
+    AV_CODEC_ID_MOV_TEXT: "QuickTime Text",  // CoreMedia.mdimporter uses "QuickTime Text"
+    AV_CODEC_ID_PJS: "PJS subtitle",
+    AV_CODEC_ID_SRT: "SubRip subtitle",
+    AV_CODEC_ID_SSA: "SSA subtitle",
+]
+
 private var dateFormatters: [ISO8601DateFormatter]? = nil
 
 @_cdecl("GetMetadataForFile")
@@ -226,85 +281,40 @@ public func GetMetadataForFile(
                 append(kMDItemMediaTypes, "Text" as CFString, in: attrs)
 
             default:
-                let mediaType = av_get_media_type_string(params.pointee.codec_type)
-                logger.info(
-                    "Skipping unknown stream \(mediaType != nil ? String(cString:mediaType!) : "", privacy:.public)"
-                )
+                if params.pointee.codec_type == AVMEDIA_TYPE_ATTACHMENT, params.pointee.codec_id == AV_CODEC_ID_TTF {
+                    // Special handling for TrueType fonts which our build of FFmpeg won't decode
+                    append(kMDItemMediaTypes, "Font" as CFString, in: attrs)
+                    append(kMDItemCodecs, "TrueType font" as CFString, in: attrs)
+                    continue
+                }
+                if let mediaType = av_get_media_type_string(params.pointee.codec_type) {
+                    logger.info("Skipping unknown \(String(cString: mediaType)), privacy:.public) stream")
+                } else {
+                    logger.info("Skipping unknown stream")
+                }
             }
 
             // Codec names
-            var codecName: String? = nil
             if let codec = avcodec_find_decoder(params.pointee.codec_id) {
-                // Some of AVCodec.long_name can be too wordy (see libavcodec/codec_desc.c) but .name too cryptic,
-                // so special-case some common codecs to give more compact & Applesque names
-                switch codec.pointee.id {
-                case AV_CODEC_ID_MJPEG: codecName = "Motion JPEG"
-                case AV_CODEC_ID_MPEG1VIDEO: codecName = "MPEG-1"
-                case AV_CODEC_ID_MPEG2VIDEO: codecName = "MPEG-2"
-                case AV_CODEC_ID_MPEG4: codecName = "MPEG-4 Video"  // CoreMedia.mdimporter uses "MPEG-4 Video"
-                case AV_CODEC_ID_MSMPEG4V1, AV_CODEC_ID_MSMPEG4V2, AV_CODEC_ID_MSMPEG4V3: codecName = "MPEG-4 [MS]"
-                case AV_CODEC_ID_H263: codecName = "H.263"
-                case AV_CODEC_ID_H263P: codecName = "H.263+"
-                case AV_CODEC_ID_H264: codecName = "H.264"
-                case AV_CODEC_ID_HEVC: codecName = "HEVC"  // CoreMedia.mdimporter uses "HEVC"
-                case AV_CODEC_ID_VVC: codecName = "H.266"
-                case AV_CODEC_ID_VP6, AV_CODEC_ID_VP6A, AV_CODEC_ID_VP6F: codecName = "VP6"
-                case AV_CODEC_ID_VP8: codecName = "VP8"
-                case AV_CODEC_ID_VP9: codecName = "VP9"
-                case AV_CODEC_ID_AV1: codecName = "AV1"
-                case AV_CODEC_ID_VC1: codecName = "VC-1"
-                case AV_CODEC_ID_QTRLE: codecName = "QuickTime Animation"
-                case AV_CODEC_ID_RPZA: codecName = "QuickTime Video"
-                case AV_CODEC_ID_FLV1: codecName = "Sorenson Spark"
-                case AV_CODEC_ID_SVQ1: codecName = "Sorenson Video"
-                case AV_CODEC_ID_SVQ3: codecName = "Sorenson Video 3"  // CoreMedia.mdimporter uses "Sorenson Video 3"
-                case AV_CODEC_ID_CAVS: codecName = "CAVS"
-                case AV_CODEC_ID_CLEARVIDEO: codecName = "ClearVideo"
-                case AV_CODEC_ID_FLIC: codecName = "FLIC"
-                case AV_CODEC_ID_INDEO4: codecName = "Intel Indeo 4"
-                case AV_CODEC_ID_INDEO5: codecName = "Intel Indeo 5"
-                case AV_CODEC_ID_AAC: codecName = "MPEG-4 AAC"  // CoreMedia.mdimporter uses "MPEG-4 AAC"
-                case AV_CODEC_ID_AC3: codecName = "Dolby Digital"
-                case AV_CODEC_ID_EAC3: codecName = "Dolby Digital Plus"
-                case AV_CODEC_ID_DTS: codecName = "DTS"
-                case AV_CODEC_ID_FLAC: codecName = "FLAC"
-                case AV_CODEC_ID_MP2: codecName = "MPEG Layer 2"
-                case AV_CODEC_ID_MP3: codecName = "MPEG Layer 3"
-                case AV_CODEC_ID_PJS: codecName = "PJS subtitle"
-                case AV_CODEC_ID_ASS: codecName = "Advanced SubStation Alpha"
-                case AV_CODEC_ID_SSA: codecName = "SubStation Alpha"
-                case AV_CODEC_ID_HDMV_PGS_SUBTITLE: codecName = "PGS subtitle"
-                case AV_CODEC_ID_SRT: codecName = "SubRip subtitle"
-                default:
+                var codecName = codecNames[params.pointee.codec_id]
+                if codecName == nil {
                     if params.pointee.codec_tag == 0x5741_5243 {  // 'CRAW'
                         codecName = "C-RAW"
-                    } else if let nameC = codec.pointee.long_name,
-                        let name = String(validatingUTF8: nameC)
-                    {
-                        codecName = name
-                    } else if let nameC = codec.pointee.name,
-                        let name = String(validatingUTF8: nameC)
-                    {
-                        codecName = name
+                    } else if let nameC = codec.pointee.long_name {
+                        codecName = String(cString: nameC)
+                    } else if let nameC = codec.pointee.name {
+                        codecName = String(cString: nameC)
                     }
                 }
-
                 if let codecName {
-                    if let profileC = av_get_profile_name(
-                        avcodec_find_decoder(params.pointee.codec_id),
-                        params.pointee.profile
-                    ),
-                        let profile = String(validatingUTF8: profileC)
-                    {
-                        append(kMDItemCodecs, "\(codecName) [\(profile)]" as CFString, in: attrs)
+                    if let profileC = av_get_profile_name(codec, params.pointee.profile) {
+                        append(kMDItemCodecs, "\(codecName) [\(String(cString: profileC))]" as CFString, in: attrs)
                     } else {
                         append(kMDItemCodecs, codecName as CFString, in: attrs)
                     }
-                } else {
-                    logger.info(
-                        "Unsupported codec id \(params.pointee.codec_id.rawValue) for stream #\(idx)"
-                    )
                 }
+            } else {
+                logger.info("Unsupported codec id \(params.pointee.codec_id.rawValue) for stream #\(idx)")
             }
         }
 
