@@ -16,7 +16,7 @@ extension VideoDecoder {
         let srcFormat = AVPixelFormat(frame.format)
 
         guard let desc = av_pix_fmt_desc_get(srcFormat)?.pointee,
-            (desc.flags & UInt64(AV_PIX_FMT_FLAG_RGB|AV_PIX_FMT_FLAG_PAL)) != 0 || srcFormat == AV_PIX_FMT_GRAY8
+            (desc.flags & UInt64(AV_PIX_FMT_FLAG_RGB | AV_PIX_FMT_FLAG_PAL)) != 0 || srcFormat == AV_PIX_FMT_GRAY8
         else {
             return CVReturnError(errorCode: Int(kCVReturnUnsupported), context: "RGBConvertToBGRA")
         }
@@ -34,7 +34,7 @@ extension VideoDecoder {
             Int32(dstWidth),
             Int32(dstHeight),
             AV_PIX_FMT_BGRA,
-            Int32(SWS_BILINEAR.rawValue|SWS_FULL_CHR_H_INT.rawValue),
+            Int32(SWS_BILINEAR.rawValue | SWS_FULL_CHR_H_INT.rawValue),
             nil,
             nil,
             nil
@@ -45,7 +45,7 @@ extension VideoDecoder {
 
         let status = CVPixelBufferLockBaseAddress(pixelBuffer, [])
         guard status == kCVReturnSuccess,
-              let dstData = CVPixelBufferGetBaseAddress(pixelBuffer)
+            let dstData = CVPixelBufferGetBaseAddress(pixelBuffer)
         else {
             return CVReturnError(errorCode: Int(status), context: "CVPixelBufferLockBaseAddress")
         }
@@ -178,7 +178,7 @@ extension VideoDecoder {
 
     // Reconstruct palette from stsd (VerbatimSampleDescription) for PAL8 codecs.
     // Copied from ff_get_qtpalette().
-    class func makeQuickTimePalette(formatDescription: CMVideoFormatDescription, codecID: AVCodecID) -> Data? {
+    class func makeQuickTimePalette(formatDescription: CMVideoFormatDescription) -> Data? {
         guard
             let stsd = formatDescription.extensions[kCMFormatDescriptionExtension_VerbatimSampleDescription as CFString] as? Data
         else {
@@ -186,6 +186,7 @@ extension VideoDecoder {
         }
         guard stsd.count >= 86 else { return nil }
 
+        // Helpers for handling unaligned access
         func be16(_ offset: Int) -> UInt16 {
             let hi = UInt16(stsd[offset])
             let lo = UInt16(stsd[offset + 1])
@@ -207,7 +208,6 @@ extension VideoDecoder {
         guard bitDepth == 1 || bitDepth == 2 || bitDepth == 4 || bitDepth == 8 else {
             return nil
         }
-        if greyscale && codecID == AV_CODEC_ID_CINEPAK { return nil }
 
         var palette = [UInt32](repeating: 0xFF00_0000, count: 256)
         let colorCount = 1 << bitDepth
