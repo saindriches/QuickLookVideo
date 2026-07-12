@@ -42,6 +42,7 @@ class VideoDecoder: NSObject, MEVideoDecoder {
         0x4458_4433: AV_CODEC_ID_DXV,  // 'DXD3'
         0x666C_6963: AV_CODEC_ID_FLIC,  // 'flic'
         0x4146_4C43: AV_CODEC_ID_FLIC,  // 'AFLC'
+        0x6e63_6c63: AV_CODEC_ID_NOTCHLC,  // 'nclc'
         0x5254_3231: AV_CODEC_ID_INDEO2,  // 'RT21'
         0x4956_3331: AV_CODEC_ID_INDEO3,  // 'IV31'
         0x4956_3332: AV_CODEC_ID_INDEO3,  // 'IV32'
@@ -159,15 +160,11 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                 params.pointee.color_space = AVCOL_SPC_RGB
 
             // YUV
-            case AV_CODEC_ID_AIC:
-                params.pointee.format = AV_PIX_FMT_YUV420P.rawValue
-                params.pointee.color_range = AVCOL_RANGE_MPEG
-            case AV_CODEC_ID_INDEO2, AV_CODEC_ID_INDEO3, AV_CODEC_ID_INDEO4, AV_CODEC_ID_INDEO5:
-                params.pointee.format = AV_PIX_FMT_YUV410P.rawValue
-                params.pointee.color_range = AVCOL_RANGE_MPEG
+            case AV_CODEC_ID_AIC, AV_CODEC_ID_INDEO2, AV_CODEC_ID_INDEO3, AV_CODEC_ID_INDEO4, AV_CODEC_ID_INDEO5, AV_CODEC_ID_NOTCHLC:
+                // Pixel format is set in codec _init() under avcodec_open2()
+                params.pointee.color_range = AVCOL_RANGE_MPEG  // will be overridden by some codecs e.g. notch
             case AV_CODEC_ID_SVQ1, AV_CODEC_ID_SVQ3:
-                params.pointee.format = AV_PIX_FMT_YUV420P.rawValue
-                params.pointee.color_range = AVCOL_RANGE_MPEG
+                params.pointee.color_range = AVCOL_RANGE_MPEG  // For SVQ1. For SVQ3 svq3_decode_init() will override
                 // see FFmpeg svq3_decode_extradata()
                 if let sampleDesc = formatDescription.extensions[kCMFormatDescriptionExtension_SampleDescriptionExtensionAtoms]
                     as? [CFString: Data],
@@ -186,7 +183,7 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                 }
             case AV_CODEC_ID_MPEG4, AV_CODEC_ID_MSMPEG4V1, AV_CODEC_ID_MSMPEG4V2, AV_CODEC_ID_MSMPEG4V3:
                 // DivX or other MPEG4 variant other than 'mp4v'. May or may not have an esds atom.
-                params.pointee.format = AV_PIX_FMT_YUV420P.rawValue
+                params.pointee.format = AV_PIX_FMT_YUV420P.rawValue  // may be overridden
                 params.pointee.color_range = AVCOL_RANGE_MPEG
                 if let sampleDesc = formatDescription.extensions[kCMFormatDescriptionExtension_SampleDescriptionExtensionAtoms]
                     as? [CFString: Data],
@@ -227,6 +224,7 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                         }
                     }
                 }
+
             default:
                 // Shouldn't get here
                 logger.error(
@@ -293,9 +291,13 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             }
         }
 
-        // Hack! DXV encodes width as a multiple of 16 for some reason even though the underlying data blocks are 4x4
         if params.pointee.codec_id == AV_CODEC_ID_DXV {
+            // Hack! DXV encodes width as a multiple of 16 for some reason even though the underlying data blocks are 4x4
             dec_ctx!.pointee.coded_width = (dec_ctx!.pointee.coded_width + 15) & -16
+        }
+        else if params.pointee.codec_id == AV_CODEC_ID_NOTCHLC {
+            // FFmpeg decoder mislabels Notch as RGB
+            dec_ctx!.pointee.colorspace = AVCOL_SPC_BT709
         }
 
         let pix_fmt_name = av_get_pix_fmt_name(dec_ctx!.pointee.pix_fmt)
