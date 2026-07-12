@@ -1,7 +1,10 @@
 QuickLook Video
 ===============
-This app allows macOS Finder to display thumbnails/cover art, QuickLook previews, and metadata for
-most types of audio and video files.
+
+[![Download on the Mac App Store](img/appstore.svg)](https://apps.apple.com/us/app/quicklook-video/id6759566961)
+
+Finder Thumbnails, Quick Look previews, Get Info metadata and previews for most types of audio and
+video files.
 
 QuickLook, AVFoundation and Spotlight understand a limited number of media files - mostly only MPEG
 audio and video codecs within MPEG container files. This app adds support for wide range of other
