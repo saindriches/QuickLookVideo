@@ -102,7 +102,11 @@ jobs:
             DEVELOPMENT_TEAM="" \
             CODE_SIGNING_REQUIRED=YES \
             CODE_SIGNING_ALLOWED=YES \
-            clean build
+            build
+            # NB: no `clean` — the ffmpeg/dav1d/zimg PBXLegacyTargets resolve
+            # their relative buildToolPath against buildWorkingDirectory ($(SRCROOT))
+            # only for the *build* action; the clean action mis-resolves it against
+            # the build service's CWD and fails. A fresh runner has nothing to clean.
 
       - name: Locate and verify the app
         id: app
