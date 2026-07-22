@@ -88,11 +88,13 @@ jobs:
       - name: Build (universal, ad-hoc signed)
         run: |
           set -o pipefail
+          # Build by -target (the repo ships no shared schemes). -derivedDataPath
+          # is a scheme-only flag, so set the output location via SYMROOT instead.
           xcodebuild \
             -project QLVideo.xcodeproj \
             -target "QuickLook Video" \
             -configuration Release \
-            -derivedDataPath build \
+            SYMROOT="$GITHUB_WORKSPACE/build" \
             ONLY_ACTIVE_ARCH=NO \
             ARCHS="arm64 x86_64" \
             CODE_SIGN_STYLE=Manual \
@@ -105,7 +107,7 @@ jobs:
       - name: Locate and verify the app
         id: app
         run: |
-          APP="build/Build/Products/Release/QuickLook Video.app"
+          APP="build/Release/QuickLook Video.app"
           test -d "$APP" || { echo "::error::app not found at $APP"; exit 1; }
           echo "path=$APP" >> "$GITHUB_OUTPUT"
           echo "== architectures =="
