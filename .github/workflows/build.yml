@@ -1,0 +1,144 @@
+name: Build (ad-hoc signed)
+
+# Builds "QuickLook Video.app" universal (arm64 + x86_64), ad-hoc self-signed,
+# after patching the bundled ffmpeg with commits taken from a fork branch.
+#
+# The ffmpeg fork URL is read from (in order): the workflow_dispatch input,
+# then the repo/org variable `FFMPEG_FORK_URL`, then the built-in default
+# (saindriches/FFmpeg). The mmt-tlv branch carries SuperFashi's MMT/TLV demuxer
+# commit plus Rainbaby's commits on top; leaving FFMPEG_PATCH_BASE empty makes
+# patch-ffmpeg.sh use merge-base(upstream, mmt-tlv), which applies ALL of those
+# non-upstream commits (the demuxer is NOT in QuickLookVideo's pinned ffmpeg, so
+# it must ride along).
+
+on:
+  push:
+    branches: [master, main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      ffmpeg_fork_url:
+        description: "ffmpeg fork git URL (blank = use repo variable FFMPEG_FORK_URL)"
+        required: false
+        default: ""
+      ffmpeg_patch_ref:
+        description: "Branch/tag/sha on the fork to take commits from"
+        required: false
+        default: "mmt-tlv"
+      ffmpeg_patch_base:
+        description: "Range start ref (blank = merge-base with pinned base = fork's own commits)"
+        required: false
+        default: ""
+      ffmpeg_patch_commits:
+        description: "Explicit ordered commit list (space-separated); overrides the range"
+        required: false
+        default: ""
+
+jobs:
+  build:
+    runs-on: macos-15
+    env:
+      # Fork config surfaced to scripts/patch-ffmpeg.sh
+      FFMPEG_FORK_URL: ${{ github.event.inputs.ffmpeg_fork_url || vars.FFMPEG_FORK_URL || 'https://github.com/saindriches/FFmpeg.git' }}
+      FFMPEG_PATCH_REF: ${{ github.event.inputs.ffmpeg_patch_ref || 'mmt-tlv' }}
+      FFMPEG_PATCH_BASE: ${{ github.event.inputs.ffmpeg_patch_base }}
+      FFMPEG_PATCH_COMMITS: ${{ github.event.inputs.ffmpeg_patch_commits }}
+    steps:
+      - name: Checkout (superproject only — submodules handled below)
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Select latest Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install ffmpeg build dependencies
+        run: brew install meson ninja pkg-config nasm
+
+      - name: Init dav1d and zimg submodules (https)
+        # ffmpeg is intentionally excluded here: its .gitmodules URL is git://
+        # (often blocked), and patch-ffmpeg.sh repopulates it from an https
+        # mirror at the pinned commit anyway.
+        run: git submodule update --init --recursive dav1d zimg
+
+      - name: Cache ffmpeg git objects
+        # Restores ffmpeg/.git so patch-ffmpeg.sh fetches incrementally instead
+        # of re-downloading the full base + fork history each run. restore-keys
+        # falls back to the newest prior cache; a fresh entry is saved per commit.
+        uses: actions/cache@v4
+        with:
+          path: ffmpeg/.git
+          key: ffmpeg-git-${{ hashFiles('.gitmodules') }}-${{ github.sha }}
+          restore-keys: |
+            ffmpeg-git-${{ hashFiles('.gitmodules') }}-
+            ffmpeg-git-
+
+      - name: Patch ffmpeg from fork
+        run: |
+          if [ -z "${FFMPEG_FORK_URL}" ]; then
+            echo "::error::FFMPEG_FORK_URL is not set. Provide the workflow_dispatch input or set the repo variable FFMPEG_FORK_URL."
+            exit 1
+          fi
+          chmod +x scripts/patch-ffmpeg.sh
+          scripts/patch-ffmpeg.sh
+
+      - name: Build (universal, ad-hoc signed)
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project QLVideo.xcodeproj \
+            -target "QuickLook Video" \
+            -configuration Release \
+            -derivedDataPath build \
+            ONLY_ACTIVE_ARCH=NO \
+            ARCHS="arm64 x86_64" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="-" \
+            DEVELOPMENT_TEAM="" \
+            CODE_SIGNING_REQUIRED=YES \
+            CODE_SIGNING_ALLOWED=YES \
+            clean build
+
+      - name: Locate and verify the app
+        id: app
+        run: |
+          APP="build/Build/Products/Release/QuickLook Video.app"
+          test -d "$APP" || { echo "::error::app not found at $APP"; exit 1; }
+          echo "path=$APP" >> "$GITHUB_OUTPUT"
+          echo "== architectures =="
+          lipo -info "$APP/Contents/MacOS/QuickLook Video" || true
+          echo "== signature =="
+          codesign -dv --verbose=2 "$APP" 2>&1 | sed -n '1,12p' || true
+          codesign --verify --deep --strict "$APP" && echo "signature OK (ad-hoc)"
+
+      - name: Package .zip
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            "${{ steps.app.outputs.path }}" "QuickLookVideo.zip"
+
+      - name: Package .dmg
+        run: |
+          python3 -m pip install --quiet --break-system-packages dmgbuild
+          dmgbuild -s QLVideo.dmgbuild \
+            -D app="${{ steps.app.outputs.path }}" \
+            "QuickLook Video" "QuickLookVideo.dmg"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuickLookVideo
+          path: |
+            QuickLookVideo.zip
+            QuickLookVideo.dmg
+          if-no-files-found: error
+
+      - name: Attach to release (tag builds only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            QuickLookVideo.zip
+            QuickLookVideo.dmg
