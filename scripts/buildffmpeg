@@ -62,15 +62,19 @@ else
 			dsymutil "${BUILT_PRODUCTS_DIR}/universal/bin/${EXE}" -o "${DWARF_DSYM_FOLDER_PATH}/${EXE}${DWARF_DSYM_FILE_NAME}"
 			strip -x "${BUILT_PRODUCTS_DIR}/universal/bin/${EXE}"
 		fi
-		if [ -n "$DEVELOPMENT_TEAM" -a -n "$PRODUCT_BUNDLE_IDENTIFIER" ]; then
-			# Add sandbox entitlement suitable for a helper app
-			[ ${ENABLE_APP_SANDBOX:-NO} == "NO" ] && SANDBOX=false || SANDBOX=true
-			ENTITLEMENTS=`mktemp -t buildffmpeg`
-			echo -e "<plist version=\"1.0\">\n<dict>\n<key>com.apple.security.app-sandbox</key>\n<${SANDBOX}/>\n<key>com.apple.security.inherit</key>\n<true/>\n</dict>\n</plist>" > "${ENTITLEMENTS}"
-			codesign -s "${DEVELOPMENT_TEAM}" -i "${PRODUCT_BUNDLE_IDENTIFIER}.${EXE}" -o runtime --entitlements "${ENTITLEMENTS}" "${BUILT_PRODUCTS_DIR}/universal/bin/${EXE}"
-			codesign -vvv "${BUILT_PRODUCTS_DIR}/universal/bin/${EXE}"
-			rm "${ENTITLEMENTS}"
-		fi
+		# Sign the helper executable. Use the explicit DEVELOPMENT_TEAM identity
+		# when set; otherwise ad-hoc ("-") so the binary embedded in the app's
+		# Contents/MacOS is not left unsigned — an unsigned nested Mach-O makes
+		# the app's own CodeSign step fail ("code object is not signed at all").
+		SIGN_IDENTITY="${DEVELOPMENT_TEAM:--}"
+		SIGN_BID="${PRODUCT_BUNDLE_IDENTIFIER:-uk.org.marginal.qlvideo}"
+		# Add sandbox entitlement suitable for a helper app
+		[ ${ENABLE_APP_SANDBOX:-NO} == "NO" ] && SANDBOX=false || SANDBOX=true
+		ENTITLEMENTS=`mktemp -t buildffmpeg`
+		echo -e "<plist version=\"1.0\">\n<dict>\n<key>com.apple.security.app-sandbox</key>\n<${SANDBOX}/>\n<key>com.apple.security.inherit</key>\n<true/>\n</dict>\n</plist>" > "${ENTITLEMENTS}"
+		codesign -f -s "${SIGN_IDENTITY}" -i "${SIGN_BID}.${EXE}" -o runtime --entitlements "${ENTITLEMENTS}" "${BUILT_PRODUCTS_DIR}/universal/bin/${EXE}"
+		codesign -vvv "${BUILT_PRODUCTS_DIR}/universal/bin/${EXE}"
+		rm "${ENTITLEMENTS}"
 	done
 
 	mkdir -p "${BUILT_PRODUCTS_DIR}/universal/include"
