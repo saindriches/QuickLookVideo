@@ -87,22 +87,6 @@ jobs:
           chmod +x scripts/patch-ffmpeg.sh
           scripts/patch-ffmpeg.sh
 
-      - name: Workaround — drop dead network.h include from mmtp.c
-        # mmtp.c #includes "network.h" but uses nothing from it (ff_parse_ntp_time
-        # and NTP_OFFSET_US both come from internal.h, already included). Under
-        # QuickLookVideo's --disable-network, network.h defines its own
-        # sockaddr_storage/addrinfo, which collide with the macOS SDK.
-        # PROPER FIX: delete this include in the saindriches/FFmpeg mmt-tlv branch;
-        # this step then becomes a no-op.
-        run: |
-          f=ffmpeg/libavformat/mmtp.c
-          if grep -q '#include "network.h"' "$f"; then
-            sed -i '' '/#include "network.h"/d' "$f"
-            echo "Removed dead network.h include from mmtp.c"
-          else
-            echo "network.h include not present (already fixed upstream) — nothing to do"
-          fi
-
       - name: Make PBXLegacyTarget tool paths absolute
         # Xcode's modern build system resolves a legacy target's *relative*
         # buildToolPath against the build service's CWD instead of $(SRCROOT),
