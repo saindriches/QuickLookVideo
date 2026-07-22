@@ -56,7 +56,9 @@ jobs:
           xcode-version: latest-stable
 
       - name: Install ffmpeg build dependencies
-        run: brew install meson ninja pkg-config nasm
+        # meson/ninja -> dav1d; nasm -> ffmpeg; autoconf/automake/libtool -> zimg
+        # (zimg's autogen.sh runs autoreconf, which BUILDING.md's list omits).
+        run: brew install meson ninja pkg-config nasm autoconf automake libtool
 
       - name: Init dav1d and zimg submodules (https)
         # ffmpeg is intentionally excluded here: its .gitmodules URL is git://
