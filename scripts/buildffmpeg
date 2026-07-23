@@ -62,18 +62,11 @@ else
 			dsymutil "${BUILT_PRODUCTS_DIR}/universal/bin/${EXE}" -o "${DWARF_DSYM_FOLDER_PATH}/${EXE}${DWARF_DSYM_FILE_NAME}"
 			strip -x "${BUILT_PRODUCTS_DIR}/universal/bin/${EXE}"
 		fi
-		if [ -n "$DEVELOPMENT_TEAM" -a -n "$PRODUCT_BUNDLE_IDENTIFIER" ]; then
-			# Add sandbox entitlement suitable for a helper app
-			[ ${ENABLE_APP_SANDBOX:-NO} == "NO" ] && SANDBOX=false || SANDBOX=true
-			ENTITLEMENTS=`mktemp -t buildffmpeg`
-			if [ "${CONFIGURATION}" == "Debug" ]; then
-				echo -e "<plist version=\"1.0\">\n<dict>\n<key>com.apple.security.app-sandbox</key>\n<${SANDBOX}/>\n<key>com.apple.security.inherit</key>\n<true/>\n<key>com.apple.security.get-task-allow</key>\n<true/>\n</dict>\n</plist>" > "${ENTITLEMENTS}"
-			else
-				echo -e "<plist version=\"1.0\">\n<dict>\n<key>com.apple.security.app-sandbox</key>\n<${SANDBOX}/>\n<key>com.apple.security.inherit</key>\n<true/>\n</dict>\n</plist>" > "${ENTITLEMENTS}"
-			fi
-			codesign -s "${DEVELOPMENT_TEAM}" -i "${PRODUCT_BUNDLE_IDENTIFIER}.${EXE}" -o runtime --entitlements "${ENTITLEMENTS}" "${BUILT_PRODUCTS_DIR}/universal/bin/${EXE}"
-			rm "${ENTITLEMENTS}"
-		fi
+		# Sign the embedded helper so it isn't left unsigned (an unsigned nested
+		# Mach-O fails the app's CodeSign step). Use DEVELOPMENT_TEAM when set,
+		# else ad-hoc ("-"). The CI resign step later replaces this with the real
+		# self-signed identity + disable-library-validation entitlement.
+		codesign -f -s "${DEVELOPMENT_TEAM:--}" -o runtime "${BUILT_PRODUCTS_DIR}/universal/bin/${EXE}"
 	done
 
 	mkdir -p "${BUILT_PRODUCTS_DIR}/universal/include"

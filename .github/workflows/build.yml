@@ -1,0 +1,141 @@
+name: Build v2 (self-signed)
+
+# Builds QuickLookVideo 2.x (classic QuickLook preview/thumbnail app-extensions,
+# NOT Media Extensions) universal + self-signed, with the bundled ffmpeg patched
+# from a fork branch. Unlike v3's Media Extensions, QuickLook extensions load
+# self-signed, so no notarization is required.
+#
+# Signing identity: stored MACOS_CERT_* secrets (stable identity) if present,
+# else an ephemeral self-signed cert per run.
+
+on:
+  push:
+    branches: [2.x-mmt]
+  workflow_dispatch:
+    inputs:
+      ffmpeg_fork_url: { description: "ffmpeg fork URL (blank=default saindriches/FFmpeg)", required: false, default: "" }
+      ffmpeg_patch_ref: { description: "fork branch/tag/sha", required: false, default: "mmt-tlv" }
+      ffmpeg_patch_base: { description: "range start (blank=merge-base)", required: false, default: "" }
+      ffmpeg_patch_commits: { description: "explicit commit list (overrides range)", required: false, default: "" }
+
+jobs:
+  build:
+    runs-on: macos-15
+    env:
+      FFMPEG_FORK_URL: ${{ github.event.inputs.ffmpeg_fork_url || vars.FFMPEG_FORK_URL || 'https://github.com/saindriches/FFmpeg.git' }}
+      FFMPEG_PATCH_REF: ${{ github.event.inputs.ffmpeg_patch_ref || 'mmt-tlv' }}
+      FFMPEG_PATCH_BASE: ${{ github.event.inputs.ffmpeg_patch_base }}
+      FFMPEG_PATCH_COMMITS: ${{ github.event.inputs.ffmpeg_patch_commits }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: false }
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with: { xcode-version: latest-stable }
+
+      - name: Install ffmpeg build dependencies
+        run: brew install meson ninja pkg-config nasm   # v2.x has no zimg (no autotools needed)
+
+      - name: Init dav1d + gas-preprocessor submodules (https)
+        run: git submodule update --init --recursive dav1d gas
+
+      - name: Cache ffmpeg git objects
+        uses: actions/cache@v4
+        with:
+          path: ffmpeg/.git
+          key: ffmpeg-git-2x-${{ hashFiles('.gitmodules') }}-${{ github.sha }}
+          restore-keys: |
+            ffmpeg-git-2x-${{ hashFiles('.gitmodules') }}-
+            ffmpeg-git-2x-
+
+      - name: Patch ffmpeg from fork
+        run: |
+          chmod +x scripts/patch-ffmpeg.sh
+          scripts/patch-ffmpeg.sh
+
+      - name: Make PBXLegacyTarget tool paths absolute
+        run: |
+          sed -i '' "s#buildToolPath = ./scripts/#buildToolPath = ${GITHUB_WORKSPACE}/scripts/#g" \
+            QLVideo.xcodeproj/project.pbxproj
+          grep -n 'buildToolPath' QLVideo.xcodeproj/project.pbxproj
+
+      - name: Set up self-signed signing identity
+        id: signing
+        env:
+          CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+          CERT_PWD: ${{ secrets.MACOS_CERT_PASSWORD }}
+          CERT_ID: ${{ secrets.MACOS_CERT_IDENTITY }}
+        run: |
+          set -e
+          KC="$RUNNER_TEMP/qlv-sign.keychain-db"; KP="qlv-$(uuidgen)"
+          security create-keychain -p "$KP" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KP" "$KC"
+          if [ -n "$CERT_P12" ]; then
+            echo "$CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+            security import "$RUNNER_TEMP/cert.p12" -k "$KC" -P "$CERT_PWD" -T /usr/bin/codesign -A
+            ID="${CERT_ID:-QuickLookVideo Self-Signed}"; echo "Using stored certificate."
+          else
+            ID="QuickLookVideo Self-Signed"
+            openssl req -x509 -newkey rsa:2048 -keyout "$RUNNER_TEMP/k.pem" -out "$RUNNER_TEMP/c.pem" \
+              -days 3650 -nodes -subj "/CN=$ID" \
+              -addext "basicConstraints=critical,CA:false" \
+              -addext "keyUsage=critical,digitalSignature" \
+              -addext "extendedKeyUsage=critical,codeSigning"
+            openssl pkcs12 -export -legacy -inkey "$RUNNER_TEMP/k.pem" -in "$RUNNER_TEMP/c.pem" \
+              -out "$RUNNER_TEMP/cert.p12" -passout pass:qlv -name "$ID" 2>/dev/null \
+            || openssl pkcs12 -export -inkey "$RUNNER_TEMP/k.pem" -in "$RUNNER_TEMP/c.pem" \
+              -out "$RUNNER_TEMP/cert.p12" -passout pass:qlv -name "$ID"
+            security import "$RUNNER_TEMP/cert.p12" -k "$KC" -P qlv -T /usr/bin/codesign -A
+            echo "::warning::No MACOS_CERT_P12 secret set — ephemeral identity (changes each build)."
+          fi
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KP" "$KC" >/dev/null
+          security list-keychains -d user -s "$KC" $(security list-keychains -d user | sed 's/"//g')
+          echo "kc=$KC" >> "$GITHUB_OUTPUT"
+          echo "id=$ID" >> "$GITHUB_OUTPUT"
+
+      - name: Build (universal)
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project QLVideo.xcodeproj \
+            -target "QuickLook Video" \
+            -configuration Release \
+            SYMROOT="$GITHUB_WORKSPACE/build" \
+            ONLY_ACTIVE_ARCH=NO ARCHS="arm64 x86_64" \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="-" DEVELOPMENT_TEAM="" \
+            CODE_SIGNING_REQUIRED=YES CODE_SIGNING_ALLOWED=YES \
+            build
+
+      - name: Re-sign with self-signed cert + disable-library-validation
+        run: |
+          chmod +x scripts/resign.sh
+          scripts/resign.sh "build/Release/QuickLook Video.app" \
+            "${{ steps.signing.outputs.id }}" "${{ steps.signing.outputs.kc }}"
+
+      - name: Locate and verify
+        id: app
+        run: |
+          APP="build/Release/QuickLook Video.app"
+          test -d "$APP" || { echo "::error::app not found"; exit 1; }
+          echo "path=$APP" >> "$GITHUB_OUTPUT"
+          lipo -info "$APP/Contents/MacOS/QuickLook Video" || true
+          codesign -dv --verbose=2 "$APP" 2>&1 | sed -n '1,10p' || true
+          echo "== extensions =="; find "$APP/Contents/PlugIns" -name '*.appex' -maxdepth 1 2>/dev/null
+          codesign --verify --deep --strict "$APP" && echo "signature OK (self-signed)"
+
+      - name: Package .zip + .dmg
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent "${{ steps.app.outputs.path }}" "QuickLookVideo-v2.zip"
+          python3 -m pip install --quiet --break-system-packages dmgbuild
+          dmgbuild -s QLVideo.dmgbuild -D app="${{ steps.app.outputs.path }}" \
+            "QuickLook Video" "QuickLookVideo-v2.dmg" || echo "::warning::dmg step failed (zip still produced)"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuickLookVideo-v2
+          path: |
+            QuickLookVideo-v2.zip
+            QuickLookVideo-v2.dmg
+          if-no-files-found: warn
