@@ -95,17 +95,20 @@ jobs:
             ID="${CERT_ID:-QuickLookVideo Self-Signed}"; echo "Using stored certificate (stable identity)."
           else
             ID="QuickLookVideo Self-Signed"
-            openssl req -x509 -newkey rsa:2048 -keyout "$RUNNER_TEMP/k.pem" -out "$RUNNER_TEMP/c.pem" \
-              -days 3650 -nodes -subj "/CN=$ID" \
-              -addext "basicConstraints=critical,CA:false" \
-              -addext "keyUsage=critical,digitalSignature" \
-              -addext "extendedKeyUsage=critical,codeSigning"
-            openssl pkcs12 -export -legacy -inkey "$RUNNER_TEMP/k.pem" -in "$RUNNER_TEMP/c.pem" \
-              -out "$RUNNER_TEMP/cert.p12" -passout pass:qlv -name "$ID" 2>/dev/null \
-            || openssl pkcs12 -export -inkey "$RUNNER_TEMP/k.pem" -in "$RUNNER_TEMP/c.pem" \
+            # Use Homebrew openssl@3 — macOS's /usr/bin/openssl is LibreSSL, which
+            # silently ignores -addext, producing a cert WITHOUT the codeSigning
+            # EKU that codesign then won't accept as an identity. Use a config file
+            # for the extensions (works reliably) and -legacy p12 (macOS security
+            # can't import OpenSSL 3's default PKCS#12 MAC).
+            SSL="$(brew --prefix openssl@3 2>/dev/null)/bin/openssl"; [ -x "$SSL" ] || SSL="$(brew --prefix openssl 2>/dev/null)/bin/openssl"; [ -x "$SSL" ] || SSL=openssl
+            echo "openssl: $SSL ($($SSL version))"
+            printf '[req]\ndistinguished_name=dn\nx509_extensions=v3\nprompt=no\n[dn]\nCN=%s\n[v3]\nbasicConstraints=critical,CA:false\nkeyUsage=critical,digitalSignature\nextendedKeyUsage=critical,codeSigning\n' "$ID" > "$RUNNER_TEMP/cert.cnf"
+            "$SSL" req -x509 -newkey rsa:2048 -keyout "$RUNNER_TEMP/k.pem" -out "$RUNNER_TEMP/c.pem" \
+              -days 3650 -nodes -config "$RUNNER_TEMP/cert.cnf"
+            "$SSL" pkcs12 -export -legacy -inkey "$RUNNER_TEMP/k.pem" -in "$RUNNER_TEMP/c.pem" \
               -out "$RUNNER_TEMP/cert.p12" -passout pass:qlv -name "$ID"
             security import "$RUNNER_TEMP/cert.p12" -k "$KC" -P qlv -T /usr/bin/codesign -A
-            echo "::warning::No MACOS_CERT_P12 secret set — ephemeral identity (changes each build)."
+            echo "::warning::No MACOS_CERT_P12 secret set — ephemeral identity (changes each build; set MACOS_CERT_* for stable identity)."
           fi
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KP" "$KC" >/dev/null
           security list-keychains -d user -s "$KC" $(security list-keychains -d user | sed 's/"//g')
