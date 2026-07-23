@@ -10,7 +10,7 @@
 # and under hardened runtime Library Validation blocks a non-Apple-Team-ID
 # process from loading them — disable-library-validation lifts that.
 #
-set -uo pipefail
+set -euo pipefail   # -e: fail loudly if any codesign fails (never silently ship ad-hoc)
 APP="$1"; ID="$2"; KC="$3"
 DLV="com.apple.security.cs.disable-library-validation"
 

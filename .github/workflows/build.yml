@@ -62,22 +62,37 @@ jobs:
             QLVideo.xcodeproj/project.pbxproj
           grep -n 'buildToolPath' QLVideo.xcodeproj/project.pbxproj
 
-      - name: Set up self-signed signing identity
-        id: signing
+      - name: Build (universal)
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project QLVideo.xcodeproj \
+            -target "QuickLook Video" \
+            -configuration Release \
+            SYMROOT="$GITHUB_WORKSPACE/build" \
+            ONLY_ACTIVE_ARCH=NO ARCHS="arm64 x86_64" \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="-" DEVELOPMENT_TEAM="" \
+            CODE_SIGNING_REQUIRED=YES CODE_SIGNING_ALLOWED=YES \
+            build
+
+      - name: Sign (self-signed cert + disable-library-validation)
+        # Keychain setup AND re-sign in ONE step/shell so the unlocked keychain +
+        # identity are in-process for codesign (cross-step keychain state does not
+        # persist, which previously made codesign fall back to ad-hoc).
         env:
           CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
           CERT_PWD: ${{ secrets.MACOS_CERT_PASSWORD }}
           CERT_ID: ${{ secrets.MACOS_CERT_IDENTITY }}
         run: |
           set -e
-          KC="$RUNNER_TEMP/qlv-sign.keychain-db"; KP="qlv-$(uuidgen)"
+          KC="$RUNNER_TEMP/qlv.keychain-db"; KP="qlv-keychain-pass"
           security create-keychain -p "$KP" "$KC"
           security set-keychain-settings -lut 21600 "$KC"
           security unlock-keychain -p "$KP" "$KC"
           if [ -n "$CERT_P12" ]; then
             echo "$CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
             security import "$RUNNER_TEMP/cert.p12" -k "$KC" -P "$CERT_PWD" -T /usr/bin/codesign -A
-            ID="${CERT_ID:-QuickLookVideo Self-Signed}"; echo "Using stored certificate."
+            ID="${CERT_ID:-QuickLookVideo Self-Signed}"; echo "Using stored certificate (stable identity)."
           else
             ID="QuickLookVideo Self-Signed"
             openssl req -x509 -newkey rsa:2048 -keyout "$RUNNER_TEMP/k.pem" -out "$RUNNER_TEMP/c.pem" \
@@ -94,27 +109,9 @@ jobs:
           fi
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KP" "$KC" >/dev/null
           security list-keychains -d user -s "$KC" $(security list-keychains -d user | sed 's/"//g')
-          echo "kc=$KC" >> "$GITHUB_OUTPUT"
-          echo "id=$ID" >> "$GITHUB_OUTPUT"
-
-      - name: Build (universal)
-        run: |
-          set -o pipefail
-          xcodebuild \
-            -project QLVideo.xcodeproj \
-            -target "QuickLook Video" \
-            -configuration Release \
-            SYMROOT="$GITHUB_WORKSPACE/build" \
-            ONLY_ACTIVE_ARCH=NO ARCHS="arm64 x86_64" \
-            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="-" DEVELOPMENT_TEAM="" \
-            CODE_SIGNING_REQUIRED=YES CODE_SIGNING_ALLOWED=YES \
-            build
-
-      - name: Re-sign with self-signed cert + disable-library-validation
-        run: |
+          echo "Signing identities in keychain:"; security find-identity -v "$KC"
           chmod +x scripts/resign.sh
-          scripts/resign.sh "build/Release/QuickLook Video.app" \
-            "${{ steps.signing.outputs.id }}" "${{ steps.signing.outputs.kc }}"
+          scripts/resign.sh "build/Release/QuickLook Video.app" "$ID" "$KC"
 
       - name: Locate and verify
         id: app
@@ -125,7 +122,17 @@ jobs:
           lipo -info "$APP/Contents/MacOS/QuickLook Video" || true
           codesign -dv --verbose=2 "$APP" 2>&1 | sed -n '1,10p' || true
           echo "== extensions =="; find "$APP/Contents/PlugIns" -name '*.appex' -maxdepth 1 2>/dev/null
-          codesign --verify --deep --strict "$APP" && echo "signature OK (self-signed)"
+          codesign --verify --deep --strict "$APP"
+          # Assert the real self-signed identity took (not an ad-hoc fallback) ...
+          if codesign -dv "$APP" 2>&1 | grep -q "flags=.*adhoc"; then
+            echo "::error::app is ad-hoc signed — the self-signed identity was not applied"; exit 1
+          fi
+          codesign -dv "$APP" 2>&1 | grep -q "Authority=" || { echo "::error::no signing authority (ad-hoc)"; exit 1; }
+          # ... and that disable-library-validation is present on an extension.
+          EXT=$(find "$APP/Contents/PlugIns" -name '*.appex' -maxdepth 1 | head -1)
+          codesign -d --entitlements - --xml "$EXT" 2>/dev/null | grep -q disable-library-validation \
+            || { echo "::error::disable-library-validation missing on $EXT"; exit 1; }
+          echo "signature OK (self-signed cert + disable-library-validation)"
 
       - name: Package .zip + .dmg
         run: |
