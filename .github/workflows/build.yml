@@ -126,11 +126,11 @@ jobs:
           codesign -dv --verbose=2 "$APP" 2>&1 | sed -n '1,10p' || true
           echo "== extensions =="; find "$APP/Contents/PlugIns" -name '*.appex' -maxdepth 1 2>/dev/null
           codesign --verify --deep --strict "$APP"
-          # Assert the real self-signed identity took (not an ad-hoc fallback) ...
-          if codesign -dv "$APP" 2>&1 | grep -q "flags=.*adhoc"; then
-            echo "::error::app is ad-hoc signed — the self-signed identity was not applied"; exit 1
-          fi
-          codesign -dv "$APP" 2>&1 | grep -q "Authority=" || { echo "::error::no signing authority (ad-hoc)"; exit 1; }
+          # Assert the real self-signed identity took (not an ad-hoc fallback).
+          # NB: the Authority= line only appears at --verbose=2 or higher.
+          INFO="$(codesign -dvv "$APP" 2>&1)"
+          echo "$INFO" | grep -q "flags=.*adhoc" && { echo "::error::app is ad-hoc signed — self-signed identity not applied"; exit 1; }
+          echo "$INFO" | grep -q "Authority=" || { echo "::error::no signing authority (ad-hoc)"; exit 1; }
           # ... and that disable-library-validation is present on an extension.
           EXT=$(find "$APP/Contents/PlugIns" -name '*.appex' -maxdepth 1 | head -1)
           codesign -d --entitlements - --xml "$EXT" 2>/dev/null | grep -q disable-library-validation \
