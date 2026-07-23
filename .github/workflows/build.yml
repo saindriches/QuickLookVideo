@@ -36,8 +36,11 @@ jobs:
       - name: Install ffmpeg build dependencies
         run: brew install meson ninja pkg-config nasm   # v2.x has no zimg (no autotools needed)
 
-      - name: Init dav1d + gas-preprocessor submodules (https)
-        run: git submodule update --init --recursive dav1d gas
+      - name: Init dav1d submodule (https)
+        # Only dav1d + ffmpeg have gitlinks at 2.x HEAD; the .gitmodules "gas"
+        # entry is stale (no tree entry) and buildffmpeg doesn't use it. ffmpeg
+        # is populated by patch-ffmpeg.sh.
+        run: git submodule update --init --recursive dav1d
 
       - name: Cache ffmpeg git objects
         uses: actions/cache@v4
